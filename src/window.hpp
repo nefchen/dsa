@@ -8,21 +8,16 @@
 #include <SDL2/SDL.h>
 
 #include "comm.hpp"
+#include "view.hpp"
 
 
 namespace win
 {
-    namespace view
-    {
-        struct View
-        {};
-    };
-
     struct Window
     {
-        Window(std::shared_ptr<comm::AppControlNode> app_node);
+        Window(comm::AppControlNode app_node);
         Window(Window const& other) = delete;
-        Window(Window&&);
+        Window(Window&& other);
         ~Window();
         Window& operator=(Window const& other) = delete;
         Window& operator=(Window&& other);
@@ -33,7 +28,7 @@ namespace win
         SDL_Window* m_sdl_window;
         SDL_Renderer* m_sdl_renderer;
 
-        std::shared_ptr<comm::AppControlNode> m_app_node;
+        comm::AppControlNode m_app_node;
     };
 }
 

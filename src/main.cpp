@@ -31,12 +31,12 @@ void process_sdl_events(SDL_Event* event, comm::AppControlNode& app_node)
         switch (event->type)
         {
             case SDL_QUIT:
-                app_node.app_exit_request.emit();
+                app_node.app_exit_request->emit();
                 break;
             case SDL_WINDOWEVENT:
                 if (event->window.event == SDL_WINDOWEVENT_CLOSE)
                 {
-                    app_node.destroy_window_request.emit(
+                    app_node.destroy_window_request->emit(
                         event->window.windowID
                     );
                 }
@@ -52,14 +52,14 @@ void process_user_app_exit_request(bool& application_should_run)
 }
 
 std::vector<comm::Lifetime> connect_control_signals(
-    std::shared_ptr<comm::AppControlNode> app_node,
+    comm::AppControlNode app_node,
     bool& application_should_run)
 {
     std::vector<comm::Lifetime> lifetimes;
 
     // Exit signal.
     lifetimes.push_back(
-        app_node->app_exit_request.connect(
+        app_node.app_exit_request->connect(
             [&application_should_run]() {
                 process_user_app_exit_request(application_should_run);
             }
@@ -70,22 +70,22 @@ std::vector<comm::Lifetime> connect_control_signals(
 }
 
 std::vector<comm::Lifetime> connect_window_management(
-    std::shared_ptr<comm::AppControlNode> app_node)
+    comm::AppControlNode app_node)
 {
     std::vector<comm::Lifetime> lifetimes;
     auto windows{std::make_shared<std::vector<win::Window>>()};
 
     lifetimes.push_back(
-        app_node->create_window_request.connect(
-            [windows](std::shared_ptr<comm::AppControlNode> app_node) {
-                auto wind{win::Window{app_node}};
+        app_node.create_window_request->connect(
+            [windows](comm::AppControlNode app_node) {
+                auto wind{win::Window{std::move(app_node)}};
                 windows->push_back(std::move(wind));
             }
         )
     );
 
     lifetimes.push_back(
-        app_node->destroy_window_request.connect(
+        app_node.destroy_window_request->connect(
             [windows, app_node](Id wid) {
                 windows->erase(
                     std::remove_if(
@@ -99,7 +99,7 @@ std::vector<comm::Lifetime> connect_window_management(
 
                 if (windows->empty())
                 {
-                    app_node->app_exit_request.emit();
+                    app_node.app_exit_request->emit();
                 }
             }
         )
@@ -116,7 +116,7 @@ int main()
     SDL_Event current_sdl_event;
 
     auto main_dispatcher{std::make_shared<comm::Dispatcher>()};
-    auto app_node{std::make_shared<comm::AppControlNode>(main_dispatcher)};
+    comm::AppControlNode app_node{main_dispatcher};
 
     // lifetimes *must not* be discarded.
     auto control_lifetimes{
@@ -125,11 +125,11 @@ int main()
     auto win_lifetimes{connect_window_management(app_node)};
 
     // Create main window.
-    app_node->create_window_request.emit(app_node);
+    app_node.create_window_request->emit(app_node);
 
     while (application_should_run)
     {
-        process_sdl_events(&current_sdl_event, *app_node);
+        process_sdl_events(&current_sdl_event, app_node);
 
         main_dispatcher->emit();
     }
