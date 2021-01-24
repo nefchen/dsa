@@ -10,8 +10,15 @@
 
 using i32 = std::int32_t;
 using u32 = std::uint32_t;
+using u8 = std::uint8_t;
 
 using Id = u32;
+
+struct Point
+{
+    i32 x;
+    i32 y;
+};
 
 #endif  // TYPES_HPP
 
