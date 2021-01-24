@@ -6,12 +6,10 @@
 #include <SDL2/SDL_ttf.h>
 #include <stdexcept>
 #include <variant>
+#include <algorithm>
 
 #include "comm.hpp"
-
-void initialize_sdl_environment();
-void process_sdl_events(SDL_Event* event);
-void process_user_app_exit_request(bool& application_should_run);
+#include "window.hpp"
 
 
 void initialize_sdl_environment()
@@ -26,15 +24,22 @@ void initialize_sdl_environment()
     }
 }
 
-void process_sdl_events(SDL_Event* event, comm::AppControlNode& communicator)
+void process_sdl_events(SDL_Event* event, comm::AppControlNode& app_node)
 {
     while (SDL_PollEvent(event))
     {
         switch (event->type)
         {
             case SDL_QUIT:
-                communicator.app_exit_request.emit();
+                app_node.app_exit_request.emit();
                 break;
+            case SDL_WINDOWEVENT:
+                if (event->window.event == SDL_WINDOWEVENT_CLOSE)
+                {
+                    app_node.destroy_window_request.emit(
+                        event->window.windowID
+                    );
+                }
             default:
                 break;
         }
@@ -46,6 +51,63 @@ void process_user_app_exit_request(bool& application_should_run)
     application_should_run = false;
 }
 
+std::vector<comm::Lifetime> connect_control_signals(
+    std::shared_ptr<comm::AppControlNode> app_node,
+    bool& application_should_run)
+{
+    std::vector<comm::Lifetime> lifetimes;
+
+    // Exit signal.
+    lifetimes.push_back(
+        app_node->app_exit_request.connect(
+            [&application_should_run]() {
+                process_user_app_exit_request(application_should_run);
+            }
+        )
+    );
+
+    return lifetimes;
+}
+
+std::vector<comm::Lifetime> connect_window_management(
+    std::shared_ptr<comm::AppControlNode> app_node)
+{
+    std::vector<comm::Lifetime> lifetimes;
+    auto windows{std::make_shared<std::vector<win::Window>>()};
+
+    lifetimes.push_back(
+        app_node->create_window_request.connect(
+            [windows](std::shared_ptr<comm::AppControlNode> app_node) {
+                auto wind{win::Window{app_node}};
+                windows->push_back(std::move(wind));
+            }
+        )
+    );
+
+    lifetimes.push_back(
+        app_node->destroy_window_request.connect(
+            [windows, app_node](Id wid) {
+                windows->erase(
+                    std::remove_if(
+                        windows->begin(),
+                        windows->end(),
+                        [wid](auto& win) {
+                            return wid == SDL_GetWindowID(win.m_sdl_window);
+                        }
+                    )
+                );
+
+                if (windows->empty())
+                {
+                    app_node->app_exit_request.emit();
+                }
+            }
+        )
+    );
+
+    return lifetimes;
+}
+
 int main()
 {
     initialize_sdl_environment();
@@ -53,22 +115,23 @@ int main()
     bool application_should_run{true};
     SDL_Event current_sdl_event;
 
-    // Define communication primitives and application
-    // control nodes. Connect app exit signals.
-    auto main_event_dispatcher{std::make_shared<comm::Dispatcher>()};
-    comm::AppControlNode main_comm_node{main_event_dispatcher};
+    auto main_dispatcher{std::make_shared<comm::Dispatcher>()};
+    auto app_node{std::make_shared<comm::AppControlNode>(main_dispatcher)};
 
-    auto lifetime = main_comm_node.app_exit_request.connect(
-        [&application_should_run]() {
-            process_user_app_exit_request(application_should_run);
-        }
-    );
+    // lifetimes *must not* be discarded.
+    auto control_lifetimes{
+        connect_control_signals(app_node, application_should_run)
+    };
+    auto win_lifetimes{connect_window_management(app_node)};
+
+    // Create main window.
+    app_node->create_window_request.emit(app_node);
 
     while (application_should_run)
     {
-        process_sdl_events(&current_sdl_event, main_comm_node);
+        process_sdl_events(&current_sdl_event, *app_node);
 
-        main_event_dispatcher->emit();
+        main_dispatcher->emit();
     }
 
     return 0;
