@@ -5,6 +5,7 @@
 #ifndef TYPES_HPP
 #define TYPES_HPP
 
+#include <SDL2/SDL.h>
 #include <cstdint>
 
 
@@ -13,6 +14,8 @@ using u32 = std::uint32_t;
 using u8 = std::uint8_t;
 
 using Id = u32;
+using Rect = SDL_Rect;
+using Color = SDL_Color;
 
 struct Point
 {

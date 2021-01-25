@@ -8,8 +8,11 @@
 #include <variant>
 #include <algorithm>
 
+#include "views/game_wait_dialog.hpp"
 #include "comm.hpp"
 #include "window.hpp"
+
+using DispatcherPtr = std::shared_ptr<comm::Dispatcher>;
 
 
 void initialize_sdl_environment()
@@ -69,39 +72,54 @@ std::vector<comm::Lifetime> connect_control_signals(
     return lifetimes;
 }
 
+win::Window create_window(
+    comm::AppControlNode app_node, DispatcherPtr dispatcher)
+{
+    // Each window has its own window node.
+    win::Window window{app_node, comm::WindowNode{dispatcher}};
+
+    // Select entry view. For now assign a default one.
+    window.load_view<game_wait_dialog::View>();
+
+    return window;
+};
+
 std::vector<comm::Lifetime> connect_window_management(
-    comm::AppControlNode app_node)
+    comm::AppControlNode app_node,
+    std::shared_ptr<std::vector<win::Window>>& windows,
+    DispatcherPtr dispatcher)
 {
     std::vector<comm::Lifetime> lifetimes;
-    auto windows{std::make_shared<std::vector<win::Window>>()};
 
+    auto on_create_request{
+        [windows, app_node, dispatcher]() {
+            // Window creation might turn lengthy,
+            // keep it as separate function.
+            windows->emplace_back(
+                std::move(create_window(app_node, dispatcher))
+            );
+        }
+    };
     lifetimes.push_back(
-        app_node.create_window_request->connect(
-            [windows](comm::AppControlNode app_node) {
-                auto wind{win::Window{std::move(app_node)}};
-                windows->push_back(std::move(wind));
-            }
-        )
+        app_node.create_window_request->connect(std::move(on_create_request))
     );
 
+    auto on_destroy_request{
+        [windows, app_node](Id wid) {
+            windows->erase(
+                std::remove_if(
+                    windows->begin(),
+                    windows->end(),
+                    [wid](auto& win) {
+                        return wid == SDL_GetWindowID(win.m_sdl_window);
+                    }
+                )
+            );
+        }
+    };
     lifetimes.push_back(
         app_node.destroy_window_request->connect(
-            [windows, app_node](Id wid) {
-                windows->erase(
-                    std::remove_if(
-                        windows->begin(),
-                        windows->end(),
-                        [wid](auto& win) {
-                            return wid == SDL_GetWindowID(win.m_sdl_window);
-                        }
-                    )
-                );
-
-                if (windows->empty())
-                {
-                    app_node.app_exit_request->emit();
-                }
-            }
+            std::move(on_destroy_request)
         )
     );
 
@@ -122,16 +140,25 @@ int main()
     auto control_lifetimes{
         connect_control_signals(app_node, application_should_run)
     };
-    auto win_lifetimes{connect_window_management(app_node)};
+
+    auto windows{std::make_shared<std::vector<win::Window>>()};
+    auto win_lifetimes{
+        connect_window_management(app_node, windows, main_dispatcher)
+    };
 
     // Create main window.
-    app_node.create_window_request->emit(app_node);
+    app_node.create_window_request->emit();
 
     while (application_should_run)
     {
         process_sdl_events(&current_sdl_event, app_node);
 
         main_dispatcher->emit();
+
+        for (auto& window: *windows)
+        {
+            window.render();
+        }
     }
 
     return 0;

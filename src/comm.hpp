@@ -33,9 +33,8 @@ namespace comm
               destroy_window_request{share_signal(destroy_window_request, dispatcher)}
         {};
 
-
         SignalPtr<> app_exit_request;
-        SignalPtr<AppControlNode> create_window_request;
+        SignalPtr<> create_window_request;
         SignalPtr<Id> destroy_window_request;
     };
 

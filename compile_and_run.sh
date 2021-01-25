@@ -7,6 +7,8 @@ g++ -std=c++20 -O2 \
 	-lSDL2 -lSDL2_ttf -lpthread \
 	-o build/dsa \
 	src/main.cpp \
-	src/window.cpp
+	src/window.cpp \
+	src/views/label.cpp
+
 ./build/dsa
 
