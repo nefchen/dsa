@@ -14,39 +14,35 @@
 
 namespace comm
 {
-    struct AppControlNode;
-    template <typename... Args>
-    using SignalPtr = std::shared_ptr<Signal<Args...>>;
-
-    template <typename T, typename... Args>
-    std::shared_ptr<T>
-    share_signal(std::shared_ptr<T>& sig, Args... args)
+    template <typename... Ts>
+    std::shared_ptr<Signal<Ts...>>
+    shared(std::shared_ptr<Dispatcher> d)
     {
-        return std::make_shared<T>(args...);
+        return std::make_shared<Signal<Ts...>>(d);
     };
 
     struct AppControlNode
     {
         AppControlNode(std::shared_ptr<Dispatcher> dispatcher)
-            : app_exit_request{share_signal(app_exit_request, dispatcher)},
-              create_window_request{share_signal(create_window_request, dispatcher)},
-              destroy_window_request{share_signal(destroy_window_request, dispatcher)}
+            : app_exit_request{shared<>(dispatcher)},
+              create_window_request{shared<>(dispatcher)},
+              destroy_window_request{shared<Id>(dispatcher)}
         {};
 
-        SignalPtr<> app_exit_request;
-        SignalPtr<> create_window_request;
-        SignalPtr<Id> destroy_window_request;
+        std::shared_ptr<Signal<>> app_exit_request;
+        std::shared_ptr<Signal<>> create_window_request;
+        std::shared_ptr<Signal<Id>> destroy_window_request;
     };
 
     struct WindowNode
     {
         WindowNode(std::shared_ptr<Dispatcher> dispatcher)
-            : mouse_button_click{share_signal(mouse_button_click, dispatcher)},
-              mouse_moved{share_signal(mouse_moved, dispatcher)}
+            : mouse_button_click{shared<mouse::Button, u8>(dispatcher)},
+              mouse_moved{shared<Point>(dispatcher)}
         {};
 
-        SignalPtr<mouse::Button, u8> mouse_button_click;
-        SignalPtr<Point> mouse_moved;
+        std::shared_ptr<Signal<mouse::Button, u8>> mouse_button_click;
+        std::shared_ptr<Signal<Point>> mouse_moved;
     };
 }
 
