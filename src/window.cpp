@@ -5,6 +5,7 @@
 #include <SDL2/SDL.h>
 
 #include "window.hpp"
+#include "types.hpp"
 #include "views/view.hpp"
 
 
@@ -17,7 +18,8 @@ namespace win
     {
         m_sdl_window = SDL_CreateWindow(
             "Deadly Space Adventures",
-            m_rect.x, m_rect.y, m_rect.w, m_rect.h, SDL_WINDOW_SHOWN
+            m_rect.x, m_rect.y, m_rect.w, m_rect.h,
+            SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE
         );
         if (m_sdl_window == nullptr)
         {
@@ -27,6 +29,8 @@ namespace win
         m_sdl_renderer = SDL_CreateRenderer(
             m_sdl_window, -1, SDL_RENDERER_ACCELERATED
         );
+
+        connect_signal_events();
     };
 
     Window::Window(Window&& other)
@@ -40,6 +44,11 @@ namespace win
 
         other.m_sdl_renderer = nullptr;
         other.m_sdl_window = nullptr;
+
+        disconnect_signals(other.m_signal_ds);
+        other.m_signal_ds.clear();
+
+        connect_signal_events();
     };
 
     Window& Window::operator=(Window&& other)
@@ -52,9 +61,15 @@ namespace win
         m_view = std::move(other.m_view);
         m_app_node = std::move(other.m_app_node);
         m_win_node = std::move(other.m_win_node);
+        m_rect = other.m_rect;
 
         other.m_sdl_renderer = nullptr;
         other.m_sdl_window = nullptr;
+
+        disconnect_signals(other.m_signal_ds);
+        other.m_signal_ds.clear();
+
+        connect_signal_events();
 
         return *this;
     };
@@ -63,12 +78,36 @@ namespace win
     {
         SDL_DestroyRenderer(m_sdl_renderer);
         SDL_DestroyWindow(m_sdl_window);
+
+        comm::disconnect_signals(m_signal_ds);
+    };
+
+    void Window::connect_signal_events()
+    {
+        m_signal_ds.push_back(
+            m_win_node.window_resized->connect(
+                [this] (Point p) {
+                    this->m_rect.w = p.x;
+                    this->m_rect.h = p.y;
+                    this->m_view->propagate_window_resize(this->m_rect);
+                }
+            )
+        );
+
+        m_signal_ds.push_back(
+            m_win_node.window_moved->connect(
+                [this] (Point p) {
+                    this->m_rect.x = p.x;
+                    this->m_rect.y = p.y;
+                }
+            )
+        );
     };
 
     void Window::render()
     {
         SDL_SetRenderDrawColor(m_sdl_renderer, 0, 0, 0, 255);
-        SDL_RenderFillRect(m_sdl_renderer, &m_rect);
+        SDL_RenderClear(m_sdl_renderer);
 
         if (m_view != nullptr)
         {

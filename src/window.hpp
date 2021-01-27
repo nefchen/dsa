@@ -25,6 +25,7 @@ namespace win
         Window& operator=(Window&& other);
 
         void render();
+        void connect_signal_events();
 
         template <typename T>
         void load_view()
@@ -39,6 +40,7 @@ namespace win
 
         comm::AppControlNode m_app_node;
         comm::WindowNode m_win_node;
+        std::vector<comm::Disconnector> m_signal_ds;
     };
 }
 

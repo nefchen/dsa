@@ -27,7 +27,28 @@ void initialize_sdl_environment()
     }
 }
 
-void process_sdl_events(SDL_Event* event, comm::AppControlNode& app_node)
+void process_sdl_window_events(
+    win::Window& window, SDL_WindowEvent win_event)
+{
+    switch (win_event.event)
+    {
+        case SDL_WINDOWEVENT_RESIZED:
+            window.m_win_node.window_resized->emit(
+                {win_event.data1, win_event.data2}
+            );
+            break;
+        case SDL_WINDOWEVENT_MOVED:
+            window.m_win_node.window_moved->emit(
+                {win_event.data1, win_event.data2}
+            );
+            break;
+    }
+}
+
+void process_sdl_events(
+    SDL_Event* event,
+    comm::AppControlNode& app_node,
+    std::shared_ptr<std::vector<win::Window>>& windows)
 {
     while (SDL_PollEvent(event))
     {
@@ -37,12 +58,25 @@ void process_sdl_events(SDL_Event* event, comm::AppControlNode& app_node)
                 app_node.app_exit_request->emit();
                 break;
             case SDL_WINDOWEVENT:
+            {
                 if (event->window.event == SDL_WINDOWEVENT_CLOSE)
                 {
                     app_node.destroy_window_request->emit(
                         event->window.windowID
                     );
+                    break;
                 }
+
+                // In other cases.
+                for (auto& window : *windows)
+                {
+                    auto id{SDL_GetWindowID(window.m_sdl_window)};
+                    if (id == event->window.windowID)
+                    {
+                        process_sdl_window_events(window, event->window);
+                    }
+                }
+            } break;
             default:
                 break;
         }
@@ -54,14 +88,14 @@ void process_user_app_exit_request(bool& application_should_run)
     application_should_run = false;
 }
 
-std::vector<comm::Lifetime> connect_control_signals(
+std::vector<comm::Disconnector> connect_control_signals(
     comm::AppControlNode app_node,
     bool& application_should_run)
 {
-    std::vector<comm::Lifetime> lifetimes;
+    std::vector<comm::Disconnector> disconnectors;
 
     // Exit signal.
-    lifetimes.push_back(
+    disconnectors.push_back(
         app_node.app_exit_request->connect(
             [&application_should_run]() {
                 process_user_app_exit_request(application_should_run);
@@ -69,7 +103,7 @@ std::vector<comm::Lifetime> connect_control_signals(
         )
     );
 
-    return lifetimes;
+    return disconnectors;
 }
 
 win::Window create_window(
@@ -84,12 +118,12 @@ win::Window create_window(
     return window;
 };
 
-std::vector<comm::Lifetime> connect_window_management(
+std::vector<comm::Disconnector> connect_window_management(
     comm::AppControlNode app_node,
     std::shared_ptr<std::vector<win::Window>>& windows,
     DispatcherPtr dispatcher)
 {
-    std::vector<comm::Lifetime> lifetimes;
+    std::vector<comm::Disconnector> disconnectors;
 
     auto on_create_request{
         [windows, app_node, dispatcher]() {
@@ -100,7 +134,7 @@ std::vector<comm::Lifetime> connect_window_management(
             );
         }
     };
-    lifetimes.push_back(
+    disconnectors.push_back(
         app_node.create_window_request->connect(std::move(on_create_request))
     );
 
@@ -117,13 +151,13 @@ std::vector<comm::Lifetime> connect_window_management(
             );
         }
     };
-    lifetimes.push_back(
+    disconnectors.push_back(
         app_node.destroy_window_request->connect(
             std::move(on_destroy_request)
         )
     );
 
-    return lifetimes;
+    return disconnectors;
 }
 
 int main()
@@ -136,13 +170,13 @@ int main()
     auto main_dispatcher{std::make_shared<comm::Dispatcher>()};
     comm::AppControlNode app_node{main_dispatcher};
 
-    // lifetimes *must not* be discarded.
-    auto control_lifetimes{
+    // disconnectors *must not* be discarded.
+    auto control_disconnectors{
         connect_control_signals(app_node, application_should_run)
     };
 
     auto windows{std::make_shared<std::vector<win::Window>>()};
-    auto win_lifetimes{
+    auto win_disconnectors{
         connect_window_management(app_node, windows, main_dispatcher)
     };
 
@@ -151,7 +185,7 @@ int main()
 
     while (application_should_run)
     {
-        process_sdl_events(&current_sdl_event, app_node);
+        process_sdl_events(&current_sdl_event, app_node, windows);
 
         main_dispatcher->emit();
 
@@ -160,6 +194,9 @@ int main()
             window.render();
         }
     }
+
+    comm::disconnect_signals(control_disconnectors);
+    comm::disconnect_signals(win_disconnectors);
 
     return 0;
 }
