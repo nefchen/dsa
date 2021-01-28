@@ -13,9 +13,11 @@
 
 namespace view
 {
+    struct View;
+
     struct Widget
     {
-        Widget(comm::WindowNode win_node): m_win_node{win_node}
+        Widget(View* view): m_view{view}
         {};
 
         virtual void draw(SDL_Renderer* renderer)
@@ -23,7 +25,7 @@ namespace view
 
         Rect m_rect{0, 0, 0, 0};
         Rect m_context_rect{0, 0, 0, 0};
-        comm::WindowNode m_win_node;
+        View* m_view;
     };
 }
 
