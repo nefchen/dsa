@@ -8,7 +8,7 @@
 #include <variant>
 #include <algorithm>
 
-#include "views/game_wait_dialog.hpp"
+#include "views/start_screen.hpp"
 #include "comm.hpp"
 #include "window.hpp"
 
@@ -113,7 +113,7 @@ win::Window create_window(
     win::Window window{app_node, comm::WindowNode{dispatcher}};
 
     // Select entry view. For now assign a default one.
-    window.load_view<game_wait_dialog::View>();
+    window.load_view<start_screen::View>();
 
     return window;
 };

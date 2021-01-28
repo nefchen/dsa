@@ -19,7 +19,7 @@ namespace view
         View(comm::WindowNode win_node): m_win_node(std::move(win_node))
         {};
 
-        void propagate_window_resize(Rect win_size)
+        virtual void propagate_window_resize(Rect win_size)
         {
             for (auto& w: m_view_widgets)
             {
@@ -27,7 +27,7 @@ namespace view
             }
         };
 
-        std::vector<std::unique_ptr<Widget>> m_view_widgets;
+        std::vector<std::shared_ptr<Widget>> m_view_widgets;
         comm::WindowNode m_win_node;
     };
 }

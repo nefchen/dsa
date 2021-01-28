@@ -8,7 +8,10 @@ g++ -std=c++20 -O2 \
 	-o build/dsa \
 	src/main.cpp \
 	src/window.cpp \
-	src/views/label.cpp
+	src/views/start_screen.cpp \
+	src/views/widgets/label.cpp
 
-./build/dsa
+if [ $? -eq 0 ]; then
+	./build/dsa
+fi
 
