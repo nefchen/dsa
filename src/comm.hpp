@@ -46,13 +46,17 @@ namespace comm
             : mouse_button_click{_shared<mouse::Button, u8>(dispatcher)},
               mouse_moved{_shared<Point>(dispatcher)},
               window_resized{_shared<Point>(dispatcher)},
-              window_moved{_shared<Point>(dispatcher)}
+              window_moved{_shared<Point>(dispatcher)},
+              window_hidden{_shared<>(dispatcher)},
+              window_exposed{_shared<>(dispatcher)}
         {};
 
         std::shared_ptr<Signal<mouse::Button, u8>> mouse_button_click;
         std::shared_ptr<Signal<Point>> mouse_moved;
         std::shared_ptr<Signal<Point>> window_resized;
         std::shared_ptr<Signal<Point>> window_moved;
+        std::shared_ptr<Signal<>> window_hidden;
+        std::shared_ptr<Signal<>> window_exposed;
     };
 }
 

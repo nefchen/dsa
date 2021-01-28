@@ -42,6 +42,12 @@ void process_sdl_window_events(
                 {win_event.data1, win_event.data2}
             );
             break;
+        case SDL_WINDOWEVENT_HIDDEN:
+            window.m_win_node.window_hidden->emit();
+            break;
+        case SDL_WINDOWEVENT_EXPOSED:
+            window.m_win_node.window_exposed->emit();
+            break;
     }
 }
 

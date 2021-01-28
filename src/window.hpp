@@ -37,6 +37,7 @@ namespace win
         SDL_Window* m_sdl_window;
         SDL_Renderer* m_sdl_renderer;
         Rect m_rect;
+        bool m_should_render{true};
 
         comm::AppControlNode m_app_node;
         comm::WindowNode m_win_node;

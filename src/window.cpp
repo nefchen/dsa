@@ -19,7 +19,8 @@ namespace win
         m_sdl_window = SDL_CreateWindow(
             "Deadly Space Adventures",
             m_rect.x, m_rect.y, m_rect.w, m_rect.h,
-            SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE
+            SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE |
+            SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC
         );
         if (m_sdl_window == nullptr)
         {
@@ -102,19 +103,37 @@ namespace win
                 }
             )
         );
+
+        m_signal_ds.push_back(
+            m_win_node.window_hidden->connect(
+                [this] () {
+                    this->m_should_render = false;
+                }
+            )
+        );
+
+        m_signal_ds.push_back(
+            m_win_node.window_exposed->connect(
+                [this] () {
+                    this->m_should_render = true;
+                }
+            )
+        );
     };
 
     void Window::render()
     {
+        if (!m_should_render)
+        {
+            return;
+        }
+
         SDL_SetRenderDrawColor(m_sdl_renderer, 0, 0, 0, 255);
         SDL_RenderClear(m_sdl_renderer);
 
         if (m_view != nullptr)
         {
-            for (auto& widget :m_view->m_view_widgets)
-            {
-                widget->draw(m_sdl_renderer);
-            }
+            m_view->render(m_sdl_renderer, m_rect);
         }
 
         SDL_RenderPresent(m_sdl_renderer);
