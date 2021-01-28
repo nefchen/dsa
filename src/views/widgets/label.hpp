@@ -2,8 +2,8 @@
  * Created on 24.01.2021 by nefchen.
  */
 
-#ifndef VIEWS_LABEL_HPP
-#define VIEWS_LABEL_HPP
+#ifndef VIEWS_WIDGETS_LABEL_HPP
+#define VIEWS_WIDGETS_LABEL_HPP
 
 #include <SDL2/SDL.h>
 #include <string>
@@ -41,5 +41,5 @@ namespace view
     };
 }
 
-#endif  // VIEWS_LABEL_HPP
+#endif  // VIEWS_WIDGETS_LABEL_HPP
 
