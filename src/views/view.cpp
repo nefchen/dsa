@@ -67,6 +67,53 @@ namespace view
         }
     };
 
+    void View::propagate_resize(Rect rect, std::shared_ptr<Widget> widget)
+    {
+        m_widget_scopes.at(0) = {0, 0, rect.w, rect.h};
+        u32 next_widget_pos{0};
+        u8 starting_widget_layer{0};
+
+        if (widget != nullptr)
+        {
+            // We want to resize childs of this.
+            auto position_of_widget{find_widget_pos(widget->m_id)};
+
+            // If widget is not in view or is last element of it
+            // no need to propagate.
+            if (position_of_widget >= m_widgets.size() - 1)
+            {
+                return;
+            }
+
+            next_widget_pos = position_of_widget + 1;
+            starting_widget_layer = m_layers.at(widget->m_id);
+            m_widget_scopes.at(starting_widget_layer + 1) = widget->m_rect;
+        }
+
+        for (u32 i = next_widget_pos; i < m_widgets.size(); ++i)
+        {
+            auto curr_widget{m_widgets.at(i)};
+            auto curr_layer{m_layers.at(curr_widget->m_id)};
+
+            if (curr_layer > starting_widget_layer || widget == nullptr)
+            {
+                curr_widget->resize(m_widget_scopes.at(curr_layer));
+                m_widget_scopes.at(curr_layer + 1) = curr_widget->m_rect;
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        if (widget == nullptr)
+        {
+            // If the window is resizing we may want to
+            // reorganize the view.
+            resize(rect);
+        }
+    };
+
     void View::render(SDL_Renderer* renderer, Rect scope)
     {
         m_widget_scopes.at(0) = {0, 0, scope.w, scope.h};

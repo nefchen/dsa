@@ -87,7 +87,7 @@ namespace win
                 [this] (Point p) {
                     this->m_rect.w = p.x;
                     this->m_rect.h = p.y;
-                    this->m_view->propagate_window_resize(this->m_rect);
+                    this->m_view->propagate_resize(this->m_rect);
                 }
             )
         );

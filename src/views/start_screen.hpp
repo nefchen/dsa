@@ -20,8 +20,7 @@ namespace start_screen
     {
         View(comm::Node comm_node);
 
-        virtual void propagate_window_resize(Rect win_rect) override;
-
+        virtual void resize(Rect rect) override;
         void create_start_menu();
 
         std::shared_ptr<view::Label> m_title;

@@ -25,6 +25,11 @@ namespace view
         virtual void draw(SDL_Renderer* renderer)
         {};
 
+        virtual void resize(Rect rect)
+        {
+            m_context_rect = rect;
+        };
+
         Rect m_rect{0, 0, 0, 0};
         Rect m_context_rect{0, 0, 0, 0};
         View* m_view;

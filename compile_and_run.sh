@@ -3,7 +3,7 @@
 # Created on 04.12.2020 by nefchen.
 #
 
-clang++ -std=c++2a -O2 \
+g++ -std=c++2a -O2 \
 	-lSDL2 -lSDL2_ttf -lpthread \
 	-o build/dsa \
 	src/main.cpp \
