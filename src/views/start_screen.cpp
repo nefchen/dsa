@@ -10,7 +10,7 @@
 
 namespace start_screen
 {
-    View::View(comm::WindowNode win_node): view::View(win_node)
+    View::View(comm::Node comm_node): view::View(comm_node)
     {
         m_title = std::make_shared<view::Label>(
             this, "Deadly Space Adventures", 60, Color{255, 255, 255}

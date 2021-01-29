@@ -18,7 +18,7 @@ namespace start_screen
 {
     struct View: view::View
     {
-        View(comm::WindowNode win_node);
+        View(comm::Node comm_node);
 
         virtual void propagate_window_resize(Rect win_rect) override;
 

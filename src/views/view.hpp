@@ -19,7 +19,7 @@ namespace view
 {
     struct View
     {
-        View(comm::WindowNode win_node): m_win_node(std::move(win_node))
+        View(comm::Node comm_node): m_comm_node(std::move(comm_node))
         {};
 
         virtual void propagate_window_resize(Rect win_size)
@@ -39,7 +39,7 @@ namespace view
         void remove_widget(std::shared_ptr<Widget> widget, const Widget* parent);
         void render(SDL_Renderer* renderer, Rect scope);
 
-        comm::WindowNode m_win_node;
+        comm::Node m_comm_node;
 
         private:
             std::vector<std::shared_ptr<Widget>> m_widgets;

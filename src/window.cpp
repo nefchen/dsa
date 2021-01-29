@@ -11,9 +11,8 @@
 
 namespace win
 {
-    Window::Window(comm::AppControlNode app_node, comm::WindowNode win_node)
-        : m_app_node{std::move(app_node)},
-          m_win_node{std::move(win_node)},
+    Window::Window(comm::Node comm_node)
+        : m_comm_node{std::move(comm_node)},
           m_rect{0, 0, 800, 800}
     {
         m_sdl_window = SDL_CreateWindow(
@@ -35,8 +34,7 @@ namespace win
     };
 
     Window::Window(Window&& other)
-        : m_app_node{std::move(other.m_app_node)},
-          m_win_node{std::move(other.m_win_node)},
+        : m_comm_node{std::move(other.m_comm_node)},
           m_view{std::move(other.m_view)},
           m_rect{other.m_rect}
     {
@@ -60,8 +58,7 @@ namespace win
         m_sdl_renderer = other.m_sdl_renderer;
         m_sdl_window = other.m_sdl_window;
         m_view = std::move(other.m_view);
-        m_app_node = std::move(other.m_app_node);
-        m_win_node = std::move(other.m_win_node);
+        m_comm_node = std::move(other.m_comm_node);
         m_rect = other.m_rect;
 
         other.m_sdl_renderer = nullptr;
@@ -86,7 +83,7 @@ namespace win
     void Window::connect_signal_events()
     {
         m_signal_ds.push_back(
-            m_win_node.window_resized->connect(
+            m_comm_node->window_resized.connect(
                 [this] (Point p) {
                     this->m_rect.w = p.x;
                     this->m_rect.h = p.y;
@@ -96,7 +93,7 @@ namespace win
         );
 
         m_signal_ds.push_back(
-            m_win_node.window_moved->connect(
+            m_comm_node->window_moved.connect(
                 [this] (Point p) {
                     this->m_rect.x = p.x;
                     this->m_rect.y = p.y;
@@ -105,7 +102,7 @@ namespace win
         );
 
         m_signal_ds.push_back(
-            m_win_node.window_hidden->connect(
+            m_comm_node->window_hidden.connect(
                 [this] () {
                     this->m_should_render = false;
                 }
@@ -113,7 +110,7 @@ namespace win
         );
 
         m_signal_ds.push_back(
-            m_win_node.window_exposed->connect(
+            m_comm_node->window_exposed.connect(
                 [this] () {
                     this->m_should_render = true;
                 }
