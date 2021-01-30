@@ -15,6 +15,9 @@
 
 namespace win
 {
+    constexpr u32 g_initial_window_w{800};
+    constexpr u32 g_initial_window_h{800};
+
     struct Window
     {
         Window(comm::Node comm_node);

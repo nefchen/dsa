@@ -191,6 +191,13 @@ int main()
 
     // Create main window.
     comm_node->create_window_request.emit();
+    main_dispatcher->emit();
+
+    // Guarantee that resize event will be propagated
+    // at least once.
+    comm_node->window_resized.emit(
+        {win::g_initial_window_w, win::g_initial_window_h}
+    );
 
     while (application_should_run)
     {

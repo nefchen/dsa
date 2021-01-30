@@ -13,7 +13,7 @@ namespace win
 {
     Window::Window(comm::Node comm_node)
         : m_comm_node{std::move(comm_node)},
-          m_rect{0, 0, 800, 800}
+          m_rect{0, 0, g_initial_window_w, g_initial_window_h}
     {
         m_sdl_window = SDL_CreateWindow(
             "Deadly Space Adventures",
