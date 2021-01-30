@@ -14,40 +14,32 @@
 
 namespace comm
 {
-    struct AppControlNode;
-    template <typename... Args>
-    using SignalPtr = std::shared_ptr<Signal<Args...>>;
-
-    template <typename T, typename... Args>
-    std::shared_ptr<T>
-    share_signal(std::shared_ptr<T>& sig, Args... args)
+    struct _Node
     {
-        return std::make_shared<T>(args...);
-    };
-
-    struct AppControlNode
-    {
-        AppControlNode(std::shared_ptr<Dispatcher> dispatcher)
-            : app_exit_request{share_signal(app_exit_request, dispatcher)},
-              create_window_request{share_signal(create_window_request, dispatcher)},
-              destroy_window_request{share_signal(destroy_window_request, dispatcher)}
+        _Node(std::shared_ptr<Dispatcher> dispatcher)
+            : app_exit_request{dispatcher},
+              create_window_request{dispatcher},
+              destroy_window_request{dispatcher},
+              mouse_button_clicked{dispatcher},
+              mouse_moved{dispatcher},
+              window_resized{dispatcher},
+              window_moved{dispatcher},
+              window_hidden{dispatcher},
+              window_exposed{dispatcher}
         {};
 
-        SignalPtr<> app_exit_request;
-        SignalPtr<> create_window_request;
-        SignalPtr<Id> destroy_window_request;
+        Signal<> app_exit_request;
+        Signal<> create_window_request;
+        Signal<Id> destroy_window_request;
+        Signal<Point, mouse::Button> mouse_button_clicked;
+        Signal<Point> mouse_moved;
+        Signal<Point> window_resized;
+        Signal<Point> window_moved;
+        Signal<> window_hidden;
+        Signal<> window_exposed;
     };
 
-    struct WindowNode
-    {
-        WindowNode(std::shared_ptr<Dispatcher> dispatcher)
-            : mouse_button_click{share_signal(mouse_button_click, dispatcher)},
-              mouse_moved{share_signal(mouse_moved, dispatcher)}
-        {};
-
-        SignalPtr<mouse::Button, u8> mouse_button_click;
-        SignalPtr<Point> mouse_moved;
-    };
+    using Node = std::shared_ptr<_Node>;
 }
 
 #endif  // COMM_HPP

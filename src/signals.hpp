@@ -17,7 +17,6 @@ namespace comm
 {
     template <typename... Args>
     using Slot = std::function<void(Args...)>;
-    using Lifetime = std::shared_ptr<Id>;
 
     struct Dispatcher
     {
@@ -44,6 +43,23 @@ namespace comm
 
         private:
            std::vector<std::function<void(void)>> m_actions;
+    };
+
+    struct Disconnector
+    {
+        Disconnector(
+            std::shared_ptr<Id> lifetime, std::function<void(void)>&& disconnect)
+            : m_lifetime{std::move(lifetime)}, m_disconnect{std::move(disconnect)}
+        {};
+
+        Disconnector(Disconnector const& d) = delete;
+        Disconnector(Disconnector&& d) = default;
+        Disconnector& operator=(Disconnector const& d) = delete;
+        Disconnector& operator=(Disconnector&& d) = default;
+        ~Disconnector() = default;
+
+        std::shared_ptr<Id> m_lifetime{nullptr};
+        std::function<void(void)> m_disconnect;
     };
 
     template <typename... Args>
@@ -86,16 +102,21 @@ namespace comm
 
         ~Signal() = default;
 
-        Lifetime connect(Slot<Args...>&& slot)
+        Disconnector connect(Slot<Args...>&& slot)
         {
-            Lifetime lifetime{std::make_shared<Id>(m_slot_id++)};
+            Disconnector disconnector{
+                std::make_shared<Id>(m_slot_id++),
+                [slot = m_slot_id, this]() {
+                    this->disconnect(slot);
+                }
+            };
 
             m_slots.emplace(
                 m_slot_id,
-                std::make_pair(lifetime, std::move(slot))
+                std::make_pair(disconnector.m_lifetime, std::move(slot))
             );
 
-            return lifetime;
+            return disconnector;
         }
 
         void disconnect(Id slot_id)
@@ -129,6 +150,14 @@ namespace comm
 
         Id m_slot_id{0};
         std::map<Id, std::pair<std::weak_ptr<Id>, Slot<Args...>>> m_slots;
+    };
+
+    inline void disconnect_signals(std::vector<Disconnector>& disconnectors)
+    {
+        for (auto& d: disconnectors)
+        {
+            d.m_disconnect();
+        }
     };
 }
 

@@ -15,9 +15,12 @@
 
 namespace win
 {
+    constexpr u32 g_initial_window_w{800};
+    constexpr u32 g_initial_window_h{800};
+
     struct Window
     {
-        Window(comm::AppControlNode app_node, comm::WindowNode win_node);
+        Window(comm::Node comm_node);
         Window(Window const& other) = delete;
         Window(Window&& other);
         ~Window();
@@ -25,20 +28,22 @@ namespace win
         Window& operator=(Window&& other);
 
         void render();
+        void connect_signal_events();
 
         template <typename T>
         void load_view()
         {
-            m_view = std::make_unique<T>(m_win_node);
+            m_view = std::make_unique<T>(m_comm_node);
         };
 
         std::unique_ptr<view::View> m_view;
         SDL_Window* m_sdl_window;
         SDL_Renderer* m_sdl_renderer;
         Rect m_rect;
+        bool m_should_render{true};
 
-        comm::AppControlNode m_app_node;
-        comm::WindowNode m_win_node;
+        comm::Node m_comm_node;
+        std::vector<comm::Disconnector> m_signal_ds;
     };
 }
 

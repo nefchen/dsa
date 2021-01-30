@@ -5,7 +5,7 @@
 #include <SDL2/SDL.h>
 
 #include "label.hpp"
-#include "../fonts.hpp"
+#include "../../fonts.hpp"
 
 
 namespace view
@@ -22,6 +22,14 @@ namespace view
         };
 
         SDL_RenderCopy(renderer, text_msg, nullptr, &m_rect);
+        SDL_FreeSurface(surf_msg);
+        SDL_DestroyTexture(text_msg);
+    };
+
+    void Label::fit_label_to_text()
+    {
+        auto font{load_font(m_font, m_font_size)};
+        TTF_SizeText(font.get(), m_text.c_str(), &m_rect.w, &m_rect.h);
     };
 }
 
