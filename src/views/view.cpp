@@ -25,25 +25,10 @@ namespace view
 
     void View::insert_widget(std::shared_ptr<Widget> widget, const Widget* parent)
     {
-        auto find_widget{
-            [this](Id w_id) {
-                return std::find_if(
-                    this->m_widgets.begin(),
-                    this->m_widgets.end(),
-                    [w_id](auto& w) { return w->m_id == w_id; }
-                );
-            }
-        };
-
-        // Already present in view, no duplication.
-        if (find_widget(widget->m_id) != m_widgets.end())
-        {
-            return;
-        }
-
+        widget->m_id = get_new_widget_id();
         m_widget_state.insert(std::make_pair(widget->m_id, WidgetState{}));
 
-        if (!parent || find_widget(parent->m_id) == m_widgets.end())
+        if (!parent || find_widget_pos(parent->m_id) == m_widgets.size())
         {
             // No parent or parent not in view.
             m_layers.insert(std::make_pair(widget->m_id, 0));
@@ -51,16 +36,13 @@ namespace view
         }
         else
         {
-            // Parent present.
-            auto parent_it{find_widget(parent->m_id)};
-
             m_layers.insert(
-                std::make_pair(
-                    widget->m_id,
-                    m_layers.at((*parent_it)->m_id) + 1
-                )
+                std::make_pair(widget->m_id, m_layers.at(parent->m_id) + 1)
             );
-            m_widgets.insert(std::next(parent_it), std::move(widget));
+            m_widgets.insert(
+                m_widgets.begin() + find_widget_pos(parent->m_id) + 1,
+                std::move(widget)
+            );
         }
 
         m_widget_scopes.clear();

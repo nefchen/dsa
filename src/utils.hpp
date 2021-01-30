@@ -5,16 +5,8 @@
 #ifndef UTILS_HPP
 #define UTILS_HPP
 
-#include <atomic>
-
 #include "types.hpp"
 
-
-inline std::atomic<Id> _g_unique_id{0};
-inline Id get_unique_id() noexcept
-{
-    return _g_unique_id++;
-};
 
 inline Rect rect_in_absolute_origin(const Rect& rect, const Rect& origin) noexcept
 {

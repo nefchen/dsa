@@ -41,6 +41,11 @@ namespace view
             );
         };
 
+        inline u32 get_new_widget_id()
+        {
+            return m_current_widget_count++;
+        };
+
         virtual void resize(Rect rect)
         {};
 
@@ -59,6 +64,7 @@ namespace view
             std::vector<Rect> m_widget_scopes;
             std::map<Id, u8> m_layers;
             std::map<Id, WidgetState> m_widget_state;
+            u32 m_current_widget_count{0};
     };
 }
 
