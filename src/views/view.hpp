@@ -20,8 +20,7 @@ namespace view
 {
     struct View
     {
-        View(comm::Node comm_node): m_comm_node(std::move(comm_node))
-        {};
+        View(comm::Node comm_node);
 
         inline const std::vector<std::shared_ptr<Widget>>& widgets()
         {
@@ -45,17 +44,21 @@ namespace view
         virtual void resize(Rect rect)
         {};
 
-        void propagate_resize(Rect rect, std::shared_ptr<Widget> widget = nullptr);
+        void propagate_mouse_move(Point point);
+        void propagate_resize(
+            Rect rect, std::shared_ptr<Widget> widget = nullptr);
         void insert_widget(std::shared_ptr<Widget> widget, const Widget* parent);
         void remove_widget(std::shared_ptr<Widget> widget, const Widget* parent);
         void render(SDL_Renderer* renderer, Rect scope);
 
         comm::Node m_comm_node;
+        std::vector<comm::Disconnector> m_signal_ds;
 
         private:
             std::vector<std::shared_ptr<Widget>> m_widgets;
             std::vector<Rect> m_widget_scopes;
             std::map<Id, u8> m_layers;
+            std::map<Id, WidgetState> m_widget_state;
     };
 }
 

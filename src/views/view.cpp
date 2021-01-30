@@ -8,10 +8,21 @@
 
 #include "widget.hpp"
 #include "view.hpp"
+#include "../types.hpp"
+#include "../utils.hpp"
 
 
 namespace view
 {
+    View::View(comm::Node comm_node): m_comm_node(std::move(comm_node))
+    {
+        m_signal_ds.push_back(
+            m_comm_node->mouse_moved.connect(
+                [this](Point p) { this->propagate_mouse_move(p); }
+            )
+        );
+    };
+
     void View::insert_widget(std::shared_ptr<Widget> widget, const Widget* parent)
     {
         auto find_widget{
@@ -29,6 +40,8 @@ namespace view
         {
             return;
         }
+
+        m_widget_state.insert(std::make_pair(widget->m_id, WidgetState{}));
 
         if (!parent || find_widget(parent->m_id) == m_widgets.end())
         {
@@ -64,6 +77,55 @@ namespace view
         for (u32 i = 0; i <= total_scopes; ++i)
         {
             m_widget_scopes.push_back({0, 0, 0, 0});
+        }
+    };
+
+    void View::propagate_mouse_move(Point point)
+    {
+        m_widget_scopes.at(0) = {0, 0, 0, 0};
+
+        for (auto& widget : m_widgets)
+        {
+            auto& w_state{m_widget_state.at(widget->m_id)};
+
+            // We need to compare mouse position to widget rect
+            // in absolute coordinates (relative to window).
+            auto w_layer{m_layers.at(widget->m_id)};
+            auto real_rect{
+                rect_in_absolute_origin(
+                    widget->m_rect,
+                    m_widget_scopes.at(w_layer)
+                )
+            };
+            m_widget_scopes.at(w_layer + 1) = real_rect;
+
+            if (point_in_rect(point, real_rect))
+            {
+                if (!w_state.m_hovered)
+                {
+                    widget->m_mouse_hover_signal.emit(
+                        relative_point_to_rect(point, widget->m_rect),
+                        Hover::enter
+                    );
+                    w_state.m_hovered = true;
+                }
+                else
+                {
+                    widget->m_mouse_hover_signal.emit(
+                        relative_point_to_rect(point, widget->m_rect),
+                        Hover::keep
+                    );
+                }
+            }
+            else if (m_widget_state.at(widget->m_id).m_hovered)
+            {
+                // Relative position may yield negative values.
+                widget->m_mouse_hover_signal.emit(
+                    relative_point_to_rect(point, widget->m_rect),
+                    Hover::leave
+                );
+                m_widget_state.at(widget->m_id).m_hovered = false;
+            }
         }
     };
 

@@ -5,13 +5,30 @@
 #ifndef UTILS_HPP
 #define UTILS_HPP
 
+#include <atomic>
+
 #include "types.hpp"
 
 
-inline Id _g_unique_id{0};
+inline std::atomic<Id> _g_unique_id{0};
 inline Id get_unique_id() noexcept
 {
     return _g_unique_id++;
+};
+
+inline Rect rect_in_absolute_origin(const Rect& rect, const Rect& origin) noexcept
+{
+    return {rect.x + origin.x, rect.y + origin.y, rect.w, rect.h};
+};
+
+inline bool point_in_rect(const Point& p, const Rect& r) noexcept
+{
+    return p.x > r.x && p.x < r.x + r.w && p.y > r.y && p.y < r.y + r.h;
+};
+
+inline Point relative_point_to_rect(const Point& p, const Rect& r) noexcept
+{
+    return {p.x - r.x, p.y - r.y};
 };
 
 inline void reposition_rect(

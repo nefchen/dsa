@@ -82,7 +82,13 @@ void process_sdl_events(
                         process_sdl_window_events(window, event->window);
                     }
                 }
-            } break;
+            }
+                break;
+            case SDL_MOUSEMOTION:
+                comm_node->mouse_moved.emit(
+                    {event->motion.x, event->motion.y}
+                );
+                break;
             default:
                 break;
         }

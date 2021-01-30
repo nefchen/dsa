@@ -39,5 +39,10 @@ enum struct Align
     right, right_top, right_bottom
 };
 
+enum struct Hover
+{
+    enter, keep, leave
+};
+
 #endif  // TYPES_HPP
 

@@ -34,6 +34,16 @@ namespace view
         Rect m_context_rect{0, 0, 0, 0};
         View* m_view;
         Id m_id;
+
+        // Widget signals.
+        comm::Signal<Point, Hover> m_mouse_hover_signal{};
+
+        std::vector<comm::Disconnector> m_signal_ds;
+    };
+
+    struct WidgetState
+    {
+        bool m_hovered{false};
     };
 }
 

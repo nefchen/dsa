@@ -31,7 +31,7 @@ namespace comm
         Signal<> app_exit_request;
         Signal<> create_window_request;
         Signal<Id> destroy_window_request;
-        Signal<mouse::Button, u8> mouse_button_click;
+        Signal<Point, mouse::Button, u8> mouse_button_click;
         Signal<Point> mouse_moved;
         Signal<Point> window_resized;
         Signal<Point> window_moved;
