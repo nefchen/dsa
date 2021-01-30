@@ -3,6 +3,7 @@
  */
 
 #include <memory>
+#include <iostream>
 
 #include "start_screen.hpp"
 #include "../types.hpp"
@@ -30,9 +31,15 @@ namespace start_screen
     void View::create_start_menu()
     {
         std::vector<view::MenuOption> options_of_menu{
-                std::make_pair("New Game", [](){}),
-                std::make_pair("Continue", [](){}),
-                std::make_pair("Options", [](){})
+                std::make_pair(
+                    "New Game", []() { std::cout << "Entering New Game\n"; }
+                ),
+                std::make_pair(
+                    "Continue", []() { std::cout << "Entering Continue\n"; }
+                ),
+                std::make_pair(
+                    "Options", []() { std::cout << "Entering Options\n"; }
+                )
         };
 
         m_start_menu = std::make_shared<view::CycleMenu>(this);

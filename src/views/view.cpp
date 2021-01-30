@@ -21,6 +21,14 @@ namespace view
                 [this](Point p) { this->propagate_mouse_move(p); }
             )
         );
+
+        m_signal_ds.push_back(
+            m_comm_node->mouse_button_clicked.connect(
+                [this](Point p, mouse::Button b) {
+                    this->propagate_mouse_click(p, b);
+                }
+            )
+        );
     };
 
     void View::insert_widget(std::shared_ptr<Widget> widget, const Widget* parent)
@@ -59,6 +67,32 @@ namespace view
         for (u32 i = 0; i <= total_scopes; ++i)
         {
             m_widget_scopes.push_back({0, 0, 0, 0});
+        }
+    };
+
+    void View::propagate_mouse_click(Point point, mouse::Button button)
+    {
+        m_widget_scopes.at(0) = {0, 0, 0, 0};
+
+        for (auto& widget : m_widgets)
+        {
+            auto& w_state{m_widget_state.at(widget->m_id)};
+
+            // We need to compare mouse position to widget rect
+            // in absolute coordinates (relative to window).
+            auto w_layer{m_layers.at(widget->m_id)};
+            auto real_rect{
+                rect_in_absolute_origin(
+                    widget->m_rect,
+                    m_widget_scopes.at(w_layer)
+                )
+            };
+            m_widget_scopes.at(w_layer + 1) = real_rect;
+
+            if (point_in_rect(point, real_rect))
+            {
+                widget->m_clicked.emit(point, button);
+            }
         }
     };
 

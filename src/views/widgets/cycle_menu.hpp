@@ -14,6 +14,7 @@
 #include "../widget.hpp"
 #include "../view.hpp"
 #include "../../types.hpp"
+#include "../../user_input.hpp"
 
 
 namespace view
@@ -32,6 +33,7 @@ namespace view
         void connect_signals_of_option(u32 option_index, OptionCallback callback);
 
         void on_option_hover(u32 option_index, Point point, Hover hover);
+        void on_option_clicked(mouse::Button button, OptionCallback callback);
 
         std::vector<std::shared_ptr<Label>> m_labels;
 

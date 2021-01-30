@@ -20,7 +20,7 @@ namespace comm
             : app_exit_request{dispatcher},
               create_window_request{dispatcher},
               destroy_window_request{dispatcher},
-              mouse_button_click{dispatcher},
+              mouse_button_clicked{dispatcher},
               mouse_moved{dispatcher},
               window_resized{dispatcher},
               window_moved{dispatcher},
@@ -31,7 +31,7 @@ namespace comm
         Signal<> app_exit_request;
         Signal<> create_window_request;
         Signal<Id> destroy_window_request;
-        Signal<Point, mouse::Button, u8> mouse_button_click;
+        Signal<Point, mouse::Button> mouse_button_clicked;
         Signal<Point> mouse_moved;
         Signal<Point> window_resized;
         Signal<Point> window_moved;

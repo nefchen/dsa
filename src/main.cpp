@@ -89,6 +89,15 @@ void process_sdl_events(
                     {event->motion.x, event->motion.y}
                 );
                 break;
+            case SDL_MOUSEBUTTONUP:
+                if (event->button.clicks == 1)
+                {
+                    comm_node->mouse_button_clicked.emit(
+                        {event->button.x, event->button.y},
+                        static_cast<mouse::Button>(event->button.button)
+                    );
+                }
+                break;
             default:
                 break;
         }

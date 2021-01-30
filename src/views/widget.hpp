@@ -10,6 +10,7 @@
 #include "../types.hpp"
 #include "../utils.hpp"
 #include "../comm.hpp"
+#include "../user_input.hpp"
 
 
 namespace view
@@ -37,6 +38,7 @@ namespace view
 
         // Widget signals.
         comm::Signal<Point, Hover> m_mouse_hover_signal{};
+        comm::Signal<Point, mouse::Button> m_clicked{};
 
         std::vector<comm::Disconnector> m_signal_ds;
     };

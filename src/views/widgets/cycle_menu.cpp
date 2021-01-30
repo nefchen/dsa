@@ -9,6 +9,7 @@
 #include "label.hpp"
 #include "../../types.hpp"
 #include "../../utils.hpp"
+#include "../../user_input.hpp"
 
 
 namespace view
@@ -48,6 +49,14 @@ namespace view
                 }
             )
         );
+
+        m_signal_ds.push_back(
+            m_labels.at(opt_index)->m_clicked.connect(
+                [this, callback] (Point point, mouse::Button button) {
+                    this->on_option_clicked(button, callback);
+                }
+            )
+        );
     };
 
     void CycleMenu::on_option_hover(u32 option_idx, Point p, Hover hover)
@@ -70,6 +79,15 @@ namespace view
 
         resize(m_context_rect);
     };
+
+    void CycleMenu::on_option_clicked(
+        mouse::Button button, OptionCallback callback)
+    {
+        if (button == mouse::Button::left)
+        {
+            callback();
+        }
+    }
 
     void CycleMenu::resize(Rect rect)
     {

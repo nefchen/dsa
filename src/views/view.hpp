@@ -13,6 +13,7 @@
 
 #include "widget.hpp"
 #include "../comm.hpp"
+#include "../user_input.hpp"
 #include "../types.hpp"
 
 
@@ -50,6 +51,7 @@ namespace view
         {};
 
         void propagate_mouse_move(Point point);
+        void propagate_mouse_click(Point point, mouse::Button button);
         void propagate_resize(
             Rect rect, std::shared_ptr<Widget> widget = nullptr);
         void insert_widget(std::shared_ptr<Widget> widget, const Widget* parent);
