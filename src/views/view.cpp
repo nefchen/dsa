@@ -6,10 +6,10 @@
 #include <memory>
 #include <algorithm>
 
-#include "widget.hpp"
-#include "view.hpp"
-#include "../types.hpp"
-#include "../utils.hpp"
+#include "views/widget.hpp"
+#include "views/view.hpp"
+#include "types.hpp"
+#include "utils.hpp"
 
 
 namespace view

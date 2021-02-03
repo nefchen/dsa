@@ -10,11 +10,11 @@
 #include <string>
 #include <functional>
 
-#include "label.hpp"
-#include "../widget.hpp"
-#include "../view.hpp"
-#include "../../types.hpp"
-#include "../../user_input.hpp"
+#include "views/widgets/label.hpp"
+#include "views/widget.hpp"
+#include "views/view.hpp"
+#include "types.hpp"
+#include "user_input.hpp"
 
 
 namespace view

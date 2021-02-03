@@ -5,9 +5,9 @@
 #include <memory>
 #include <iostream>
 
-#include "start_screen.hpp"
-#include "../types.hpp"
-#include "../utils.hpp"
+#include "views/start_screen.hpp"
+#include "types.hpp"
+#include "utils.hpp"
 
 
 namespace start_screen

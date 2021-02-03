@@ -4,8 +4,8 @@
 
 #include <SDL2/SDL.h>
 
-#include "label.hpp"
-#include "../../fonts.hpp"
+#include "views/widgets/label.hpp"
+#include "fonts.hpp"
 
 
 namespace view

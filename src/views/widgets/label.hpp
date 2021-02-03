@@ -8,9 +8,9 @@
 #include <SDL2/SDL.h>
 #include <string>
 
-#include "../widget.hpp"
-#include "../../fonts.hpp"
-#include "../../types.hpp"
+#include "views/widget.hpp"
+#include "fonts.hpp"
+#include "types.hpp"
 
 
 namespace view

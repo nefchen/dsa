@@ -5,11 +5,11 @@
 #include <SDL2/SDL.h>
 #include <algorithm>
 
-#include "cycle_menu.hpp"
-#include "label.hpp"
-#include "../../types.hpp"
-#include "../../utils.hpp"
-#include "../../user_input.hpp"
+#include "views/widgets/cycle_menu.hpp"
+#include "views/widgets/label.hpp"
+#include "types.hpp"
+#include "utils.hpp"
+#include "user_input.hpp"
 
 
 namespace view

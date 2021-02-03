@@ -11,10 +11,10 @@
 #include <vector>
 #include <map>
 
-#include "widget.hpp"
-#include "../comm.hpp"
-#include "../user_input.hpp"
-#include "../types.hpp"
+#include "views/widget.hpp"
+#include "comm.hpp"
+#include "user_input.hpp"
+#include "types.hpp"
 
 
 namespace view

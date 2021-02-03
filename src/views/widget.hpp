@@ -7,10 +7,10 @@
 
 #include <SDL2/SDL.h>
 
-#include "../types.hpp"
-#include "../utils.hpp"
-#include "../comm.hpp"
-#include "../user_input.hpp"
+#include "types.hpp"
+#include "utils.hpp"
+#include "comm.hpp"
+#include "user_input.hpp"
 
 
 namespace view

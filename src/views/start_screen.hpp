@@ -7,11 +7,11 @@
 
 #include <memory>
 
-#include "view.hpp"
-#include "widgets/label.hpp"
-#include "widgets/cycle_menu.hpp"
-#include "../comm.hpp"
-#include "../types.hpp"
+#include "views/view.hpp"
+#include "views/widgets/label.hpp"
+#include "views/widgets/cycle_menu.hpp"
+#include "comm.hpp"
+#include "types.hpp"
 
 
 namespace start_screen
