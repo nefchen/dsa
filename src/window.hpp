@@ -43,7 +43,7 @@ namespace win
         bool m_should_render{true};
 
         comm::Node m_comm_node;
-        std::vector<comm::Disconnector> m_signal_ds;
+        std::vector<comm::Lifetime> m_signal_lfs;
     };
 }
 

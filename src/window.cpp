@@ -44,8 +44,7 @@ namespace win
         other.m_sdl_renderer = nullptr;
         other.m_sdl_window = nullptr;
 
-        disconnect_signals(other.m_signal_ds);
-        other.m_signal_ds.clear();
+        other.m_signal_lfs.clear();
 
         connect_signal_events();
     };
@@ -64,8 +63,7 @@ namespace win
         other.m_sdl_renderer = nullptr;
         other.m_sdl_window = nullptr;
 
-        disconnect_signals(other.m_signal_ds);
-        other.m_signal_ds.clear();
+        other.m_signal_lfs.clear();
 
         connect_signal_events();
 
@@ -76,13 +74,11 @@ namespace win
     {
         SDL_DestroyRenderer(m_sdl_renderer);
         SDL_DestroyWindow(m_sdl_window);
-
-        comm::disconnect_signals(m_signal_ds);
     };
 
     void Window::connect_signal_events()
     {
-        m_signal_ds.push_back(
+        m_signal_lfs.push_back(
             m_comm_node->window_resized.connect(
                 [this] (Point p) {
                     this->m_rect.w = p.x;
@@ -92,7 +88,7 @@ namespace win
             )
         );
 
-        m_signal_ds.push_back(
+        m_signal_lfs.push_back(
             m_comm_node->window_moved.connect(
                 [this] (Point p) {
                     this->m_rect.x = p.x;
@@ -101,7 +97,7 @@ namespace win
             )
         );
 
-        m_signal_ds.push_back(
+        m_signal_lfs.push_back(
             m_comm_node->window_hidden.connect(
                 [this] () {
                     this->m_should_render = false;
@@ -109,7 +105,7 @@ namespace win
             )
         );
 
-        m_signal_ds.push_back(
+        m_signal_lfs.push_back(
             m_comm_node->window_exposed.connect(
                 [this] () {
                     this->m_should_render = true;

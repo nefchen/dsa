@@ -109,14 +109,14 @@ void process_user_app_exit_request(bool& application_should_run)
     application_should_run = false;
 }
 
-std::vector<comm::Disconnector> connect_control_signals(
+std::vector<comm::Lifetime> connect_control_signals(
     comm::Node& comm_node,
     bool& application_should_run)
 {
-    std::vector<comm::Disconnector> disconnectors;
+    std::vector<comm::Lifetime> lifetimes;
 
     // Exit signal.
-    disconnectors.push_back(
+    lifetimes.push_back(
         comm_node->app_exit_request.connect(
             [&application_should_run]() {
                 process_user_app_exit_request(application_should_run);
@@ -124,7 +124,7 @@ std::vector<comm::Disconnector> connect_control_signals(
         )
     );
 
-    return disconnectors;
+    return lifetimes;
 }
 
 win::Window create_window(const comm::Node& comm_node)
@@ -138,10 +138,10 @@ win::Window create_window(const comm::Node& comm_node)
     return window;
 };
 
-std::vector<comm::Disconnector> connect_window_management(
+std::vector<comm::Lifetime> connect_window_management(
     comm::Node& comm_node, std::shared_ptr<std::vector<win::Window>>& windows)
 {
-    std::vector<comm::Disconnector> disconnectors;
+    std::vector<comm::Lifetime> lifetimes;
 
     auto on_create_request{
         [windows, comm_node]() {
@@ -152,7 +152,7 @@ std::vector<comm::Disconnector> connect_window_management(
             );
         }
     };
-    disconnectors.push_back(
+    lifetimes.push_back(
         comm_node->create_window_request.connect(std::move(on_create_request))
     );
 
@@ -169,13 +169,13 @@ std::vector<comm::Disconnector> connect_window_management(
             );
         }
     };
-    disconnectors.push_back(
+    lifetimes.push_back(
         comm_node->destroy_window_request.connect(
             std::move(on_destroy_request)
         )
     );
 
-    return disconnectors;
+    return lifetimes;
 }
 
 int main()
@@ -188,13 +188,13 @@ int main()
     auto main_dispatcher{std::make_shared<comm::Dispatcher>()};
     comm::Node comm_node{std::make_shared<comm::_Node>(main_dispatcher)};
 
-    // disconnectors *must not* be discarded.
-    auto control_disconnectors{
+    // lifetimes *must not* be discarded.
+    auto control_lifetimes{
         connect_control_signals(comm_node, application_should_run)
     };
 
     auto windows{std::make_shared<std::vector<win::Window>>()};
-    auto win_disconnectors{
+    auto win_lifetimes{
         connect_window_management(comm_node, windows)
     };
 
@@ -219,9 +219,6 @@ int main()
             window.render();
         }
     }
-
-    comm::disconnect_signals(control_disconnectors);
-    comm::disconnect_signals(win_disconnectors);
 
     return 0;
 }

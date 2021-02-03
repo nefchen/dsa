@@ -16,13 +16,13 @@ namespace view
 {
     View::View(comm::Node comm_node): m_comm_node(std::move(comm_node))
     {
-        m_signal_ds.push_back(
+        m_signal_lfs.push_back(
             m_comm_node->mouse_moved.connect(
                 [this](Point p) { this->propagate_mouse_move(p); }
             )
         );
 
-        m_signal_ds.push_back(
+        m_signal_lfs.push_back(
             m_comm_node->mouse_button_clicked.connect(
                 [this](Point p, mouse::Button b) {
                     this->propagate_mouse_click(p, b);

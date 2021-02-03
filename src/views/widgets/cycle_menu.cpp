@@ -42,7 +42,7 @@ namespace view
     void CycleMenu::connect_signals_of_option(
         u32 opt_index, OptionCallback callback)
     {
-        m_signal_ds.push_back(
+        m_signal_lfs.push_back(
             m_labels.at(opt_index)->m_mouse_hover_signal.connect(
                 [this, opt_index] (Point point, Hover hover) {
                     this->on_option_hover(opt_index, point, hover);
@@ -50,7 +50,7 @@ namespace view
             )
         );
 
-        m_signal_ds.push_back(
+        m_signal_lfs.push_back(
             m_labels.at(opt_index)->m_clicked.connect(
                 [this, callback] (Point point, mouse::Button button) {
                     this->on_option_clicked(button, callback);
