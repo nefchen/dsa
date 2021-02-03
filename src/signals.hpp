@@ -9,6 +9,7 @@
 #include <memory>
 #include <vector>
 #include <map>
+#include <iostream>
 
 #include "types.hpp"
 
@@ -17,6 +18,14 @@ namespace comm
 {
     template <typename... Args>
     using Slot = std::function<void(Args...)>;
+    using Lifetime = std::shared_ptr<Id>;
+
+    template <typename... Args>
+    struct BoundSlot
+    {
+        std::weak_ptr<Id> m_lifetime;
+        Slot<Args...> m_slot;
+    };
 
     struct Dispatcher
     {
@@ -43,23 +52,6 @@ namespace comm
 
         private:
            std::vector<std::function<void(void)>> m_actions;
-    };
-
-    struct Disconnector
-    {
-        Disconnector(
-            std::shared_ptr<Id> lifetime, std::function<void(void)>&& disconnect)
-            : m_lifetime{std::move(lifetime)}, m_disconnect{std::move(disconnect)}
-        {};
-
-        Disconnector(Disconnector const& d) = delete;
-        Disconnector(Disconnector&& d) = default;
-        Disconnector& operator=(Disconnector const& d) = delete;
-        Disconnector& operator=(Disconnector&& d) = default;
-        ~Disconnector() = default;
-
-        std::shared_ptr<Id> m_lifetime{nullptr};
-        std::function<void(void)> m_disconnect;
     };
 
     template <typename... Args>
@@ -102,36 +94,39 @@ namespace comm
 
         ~Signal() = default;
 
-        Disconnector connect(Slot<Args...>&& slot)
+        Lifetime connect(Slot<Args...>&& slot)
         {
-            Disconnector disconnector{
-                std::make_shared<Id>(m_slot_id++),
-                [slot = m_slot_id, this]() {
-                    this->disconnect(slot);
-                }
-            };
+            auto lifetime{std::make_shared<Id>(m_slot_id++)};
 
             m_slots.emplace(
                 m_slot_id,
-                std::make_pair(disconnector.m_lifetime, std::move(slot))
+                BoundSlot<Args...>{lifetime, std::move(slot)}
             );
 
-            return disconnector;
+            return lifetime;
         }
 
-        void disconnect(Id slot_id)
+        void disconnect(Lifetime&& slot_lifetime)
         {
-            m_slots.erase(slot_id);
+            m_slots.erase(*slot_lifetime);
         }
 
         void emit(Args... args)
         {
-            for (auto& s: m_slots)
+            for (auto iter{m_slots.begin()}; iter != m_slots.end(); )
             {
-                auto action = [lifetime = s.second.first, cback = s.second.second, args...]() {
-                    if (!lifetime.expired())
+                auto& [id, bound_slot]{*iter};
+
+                if (bound_slot.m_lifetime.expired())
+                {
+                    iter = m_slots.erase(iter);
+                    continue;
+                }
+
+                auto action = [bs = bound_slot, args...]() {
+                    if (!bs.m_lifetime.expired())
                     {
-                        cback(args...);
+                        bs.m_slot(args...);
                     }
                 };
 
@@ -143,21 +138,15 @@ namespace comm
                 {
                     (*m_dispatcher)(std::move(action));
                 }
+
+                ++iter;
             }
         };
 
         std::shared_ptr<Dispatcher> m_dispatcher{nullptr};
 
         Id m_slot_id{0};
-        std::map<Id, std::pair<std::weak_ptr<Id>, Slot<Args...>>> m_slots;
-    };
-
-    inline void disconnect_signals(std::vector<Disconnector>& disconnectors)
-    {
-        for (auto& d: disconnectors)
-        {
-            d.m_disconnect();
-        }
+        std::map<Id, BoundSlot<Args...>> m_slots;
     };
 }
 
