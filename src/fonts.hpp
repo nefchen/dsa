@@ -18,7 +18,7 @@ enum struct Fonts
     megrim, baloo, ibm
 };
 
-inline std::filesystem::path g_font_path {"assets/fonts"};
+inline std::filesystem::path g_font_path {"../assets/fonts"};
 inline std::map<Fonts, std::string> g_font_resource{
     {Fonts::megrim, "Megrim-Regular.ttf"},
     {Fonts::baloo, "BalooTammudu2-Regular.ttf"},
@@ -48,8 +48,7 @@ load_font(Fonts font_type, u8 font_size)
         );
     }
 
-    return std::unique_ptr<TTF_Font, decltype(font_deleter)>(
-        font, font_deleter);
+    return std::unique_ptr<TTF_Font, decltype(font_deleter)>(font, font_deleter);
 };
 
 
