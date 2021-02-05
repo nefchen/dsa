@@ -9,7 +9,6 @@
 #include <memory>
 #include <vector>
 #include <map>
-#include <iostream>
 
 #include "types.hpp"
 
@@ -69,18 +68,19 @@ namespace comm
             m_dispatcher = other.m_dispatcher;
         };
 
-        Signal(Signal&& other)
-        {
-            m_dispatcher = other.m_dispatcher;
-            m_slot_id = other.m_slot_id;
-            m_slots = std::move(other.m_slots);
-        };
-
         Signal& operator=(Signal const& other)
         {
             m_dispatcher = other.m_dispatcher;
 
             return *this;
+        };
+
+        Signal(Signal&& other)
+        {
+            m_dispatcher = other.m_dispatcher;
+            m_slot_id = other.m_slot_id;
+
+            m_slots = std::move(other.m_slots);
         };
 
         Signal& operator=(Signal&& other)
@@ -94,7 +94,12 @@ namespace comm
 
         ~Signal() = default;
 
-        Lifetime connect(Slot<Args...>&& slot)
+        inline u32 count_connections() const
+        {
+            return m_slots.size();
+        };
+
+        inline Lifetime connect(Slot<Args...>&& slot)
         {
             auto lifetime{std::make_shared<Id>(m_slot_id++)};
 
@@ -106,13 +111,19 @@ namespace comm
             return lifetime;
         }
 
-        void disconnect(Lifetime&& slot_lifetime)
+        inline void disconnect(Lifetime&& slot_lifetime)
         {
             m_slots.erase(*slot_lifetime);
         }
 
-        void emit(Args... args)
+        inline void emit(Args... args)
         {
+            if (m_emitting)
+            {
+                return;
+            };
+
+            m_emitting = true;
             for (auto iter{m_slots.begin()}; iter != m_slots.end(); )
             {
                 auto& [id, bound_slot]{*iter};
@@ -141,12 +152,16 @@ namespace comm
 
                 ++iter;
             }
+            m_emitting = false;
         };
 
         std::shared_ptr<Dispatcher> m_dispatcher{nullptr};
 
-        Id m_slot_id{0};
-        std::map<Id, BoundSlot<Args...>> m_slots;
+        private:
+            bool m_emitting{false};
+
+            Id m_slot_id{0};
+            std::map<Id, BoundSlot<Args...>> m_slots;
     };
 }
 
