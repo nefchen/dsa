@@ -59,7 +59,7 @@ void create_window(Windows& wins, comm::Node comm_node)
             g_initial_win_rect.y,
             g_initial_win_rect.w,
             g_initial_win_rect.h,
-            SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_RENDERER_PRESENTVSYNC
+            SDL_WINDOW_SHOWN// | SDL_WINDOW_RESIZABLE | SDL_RENDERER_PRESENTVSYNC
         )
     };
     if (raw_sdl_win == nullptr)
@@ -77,15 +77,12 @@ void create_window(Windows& wins, comm::Node comm_node)
 
     Window win{std::move(raw_sdl_win), std::move(raw_sdl_renderer)};
 
-    // Guarantee that resize event will be propagated
-    // at least once to this window.
-    comm_node->window_resized.emit(
-        SDL_GetWindowID(raw_sdl_win.get()),
-        {g_initial_win_rect.w, g_initial_win_rect.h}
-    );
-
     // For now default to start screen.
     win.m_view = std::make_unique<start_screen::View>(comm_node);
+
+    // Guarantee that resize event will be propagated
+    // at least once to this window.
+    win.m_view->propagate_resize({g_initial_win_rect.w, g_initial_win_rect.h});
 
     wins.push_back(std::move(win));
 }
@@ -326,8 +323,6 @@ int main()
     connect_window_signals(comm_node, windows, lifetimes);
 
     // Create entry point window.
-    create_window(windows, comm_node);
-    create_window(windows, comm_node);
     create_window(windows, comm_node);
 
     while (application_should_run)
