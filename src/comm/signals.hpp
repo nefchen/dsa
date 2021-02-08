@@ -2,15 +2,15 @@
  * Created on 22.01.2021 by nefchen.
  */
 
-#ifndef SIGNALS_HPP
-#define SIGNALS_HPP
+#ifndef COMM_SIGNALS_HPP
+#define COMM_SIGNALS_HPP
 
 #include <functional>
 #include <memory>
 #include <vector>
 #include <map>
 
-#include "types.hpp"
+#include "types/basic.hpp"
 
 
 namespace comm
@@ -165,5 +165,5 @@ namespace comm
     };
 }
 
-#endif  // SIGNALS_HPP
+#endif  // COMM_SIGNALS_HPP
 

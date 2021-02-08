@@ -2,17 +2,17 @@
  * Created on 24.01.2021 by nefchen.
  */
 
-#ifndef USER_INPUT_HPP
-#define USER_INPUT_HPP
+#ifndef TYPES_INPUT_HPP
+#define TYPES_INPUT_HPP
 
 #include <SDL2/SDL.h>
 
-#include "types.hpp"
+#include "types/basic.hpp"
 
 
-namespace mouse
+namespace input
 {
-    enum struct Button: u8
+    enum struct MouseButton: u8
     {
         left = SDL_BUTTON_LEFT,
         right = SDL_BUTTON_RIGHT,
@@ -21,12 +21,17 @@ namespace mouse
         x2 = SDL_BUTTON_X2
     };
 
-    enum struct ButtonState: u8
+    enum struct MouseState: u8
     {
         pressed = SDL_PRESSED,
         released = SDL_RELEASED
     };
+
+    enum struct MouseHover
+    {
+        enter, keep, leave
+    };
 }
 
-#endif  // USER_INPUT_HPP
+#endif  // TYPES_INPUT_HPP
 

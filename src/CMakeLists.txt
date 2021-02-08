@@ -6,11 +6,10 @@ set(CMAKE_CXX_COMPILER clang++)
 
 add_executable(dsa
 	main.cpp
-	window.cpp
 	views/view.cpp
-	views/start_screen.cpp
-	views/widgets/label.cpp
-	views/widgets/cycle_menu.cpp
+	views/start_screen/start_screen.cpp
+	widgets/label.cpp
+	widgets/cycle_menu.cpp
 )
 
 target_include_directories(dsa PRIVATE .)

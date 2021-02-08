@@ -5,16 +5,16 @@
 #ifndef VIEWS_VIEW_HPP
 #define VIEWS_VIEW_HPP
 
-#include <SDL2/SDL.h>
 #include <algorithm>
 #include <memory>
 #include <vector>
 #include <map>
 
-#include "views/widget.hpp"
-#include "comm.hpp"
-#include "user_input.hpp"
-#include "types.hpp"
+#include "widgets/widget.hpp"
+#include "comm/comm.hpp"
+#include "types/input.hpp"
+#include "types/basic.hpp"
+#include "types/sdl.hpp"
 
 
 namespace view
@@ -23,7 +23,7 @@ namespace view
     {
         View(comm::Node comm_node);
 
-        inline const std::vector<std::shared_ptr<Widget>>& widgets()
+        inline const std::vector<std::shared_ptr<Widget>>& widgets() const
         {
             return m_widgets;
         };
@@ -47,26 +47,25 @@ namespace view
             return m_current_widget_count++;
         };
 
-        virtual void resize(Rect rect)
+        virtual void resize(Point point)
         {};
 
         void propagate_mouse_move(Point point);
-        void propagate_mouse_click(Point point, mouse::Button button);
-        void propagate_resize(
-            Rect rect, std::shared_ptr<Widget> widget = nullptr);
+        void propagate_mouse_click(Point point, input::MouseButton button, u8 clicks);
+        void propagate_resize(Point point, std::shared_ptr<Widget> widget = nullptr);
         void insert_widget(std::shared_ptr<Widget> widget, const Widget* parent);
         void remove_widget(std::shared_ptr<Widget> widget, const Widget* parent);
-        void render(SDL_Renderer* renderer, Rect scope);
+        void render(SDL_Renderer* renderer);
 
         comm::Node m_comm_node;
-        std::vector<comm::Lifetime> m_signal_lfs;
 
         private:
             std::vector<std::shared_ptr<Widget>> m_widgets;
-            std::vector<Rect> m_widget_scopes;
+            std::vector<Rect> m_rect_cache;
             std::map<Id, u8> m_layers;
             std::map<Id, WidgetState> m_widget_state;
             u32 m_current_widget_count{0};
+            Rect m_rect;
     };
 }
 

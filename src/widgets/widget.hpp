@@ -2,15 +2,13 @@
  * Created on 24.01.2021 by nefchen.
  */
 
-#ifndef VIEWS_WIDGET_HPP
-#define VIEWS_WIDGET_HPP
+#ifndef WIDGETS_WIDGET_HPP
+#define WIDGETS_WIDGET_HPP
 
-#include <SDL2/SDL.h>
-
-#include "types.hpp"
-#include "utils.hpp"
-#include "comm.hpp"
-#include "user_input.hpp"
+#include "comm/comm.hpp"
+#include "types/input.hpp"
+#include "types/sdl.hpp"
+#include "types/basic.hpp"
 
 
 namespace view
@@ -37,8 +35,8 @@ namespace view
         Id m_id{0};
 
         // Widget signals.
-        comm::Signal<Point, Hover> m_mouse_hover_signal{};
-        comm::Signal<Point, mouse::Button> m_clicked{};
+        comm::Signal<Point, input::MouseHover> m_mouse_hover_signal{};
+        comm::Signal<Point, input::MouseButton> m_clicked{};
 
         std::vector<comm::Lifetime> m_signal_lfs;
     };
@@ -49,5 +47,5 @@ namespace view
     };
 }
 
-#endif  // VIEWS_WIDGET_HPP
+#endif  // WIDGETS_WIDGET_HPP
 

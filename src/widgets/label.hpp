@@ -2,15 +2,15 @@
  * Created on 24.01.2021 by nefchen.
  */
 
-#ifndef VIEWS_WIDGETS_LABEL_HPP
-#define VIEWS_WIDGETS_LABEL_HPP
+#ifndef WIDGETS_LABEL_HPP
+#define WIDGETS_LABEL_HPP
 
-#include <SDL2/SDL.h>
 #include <string>
 
-#include "views/widget.hpp"
-#include "fonts.hpp"
-#include "types.hpp"
+#include "widgets/widget.hpp"
+#include "text/fonts.hpp"
+#include "types/basic.hpp"
+#include "types/sdl.hpp"
 
 
 namespace view
@@ -41,5 +41,5 @@ namespace view
     };
 }
 
-#endif  // VIEWS_WIDGETS_LABEL_HPP
+#endif  // WIDGETS_LABEL_HPP
 
