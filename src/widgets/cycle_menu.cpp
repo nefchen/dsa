@@ -2,14 +2,14 @@
  * Created on 28.01.2021 by nefchen.
  */
 
-#include <SDL2/SDL.h>
 #include <algorithm>
 
-#include "cycle_menu.hpp"
-#include "label.hpp"
-#include "../../types.hpp"
-#include "../../utils.hpp"
-#include "../../user_input.hpp"
+#include "widgets/cycle_menu.hpp"
+#include "widgets/label.hpp"
+#include "views/positioning.hpp"
+#include "types/input.hpp"
+#include "types/basic.hpp"
+#include "types/sdl.hpp"
 
 
 namespace view
@@ -42,36 +42,41 @@ namespace view
     void CycleMenu::connect_signals_of_option(
         u32 opt_index, OptionCallback callback)
     {
-        m_signal_ds.push_back(
-            m_labels.at(opt_index)->m_mouse_hover_signal.connect(
-                [this, opt_index] (Point point, Hover hover) {
-                    this->on_option_hover(opt_index, point, hover);
-                }
+        m_lifetimes.push_back(
+            comm::bind_autodelete_lifetime(
+                m_labels.at(opt_index)->m_hovered.connect(
+                    [this, opt_index] (Point point, input::MouseHover hover) {
+                        this->on_option_hover(opt_index, point, hover);
+                    }
+                ),
+                m_labels.at(opt_index)->m_hovered
             )
         );
-
-        m_signal_ds.push_back(
-            m_labels.at(opt_index)->m_clicked.connect(
-                [this, callback] (Point point, mouse::Button button) {
-                    this->on_option_clicked(button, callback);
-                }
+        m_lifetimes.push_back(
+            comm::bind_autodelete_lifetime(
+                m_labels.at(opt_index)->m_clicked.connect(
+                    [this, callback] (Point point, input::MouseButton button) {
+                        this->on_option_clicked(button, callback);
+                    }
+                ),
+                m_labels.at(opt_index)->m_clicked
             )
         );
     };
 
-    void CycleMenu::on_option_hover(u32 option_idx, Point p, Hover hover)
+    void CycleMenu::on_option_hover(u32 option_idx, Point p, input::MouseHover hover)
     {
         auto& label{m_labels.at(option_idx)};
 
         switch (hover)
         {
-            case Hover::enter:
+            case input::MouseHover::enter:
                 // Fall through.
-            case Hover::keep:
+            case input::MouseHover::keep:
                 label->m_font_size = m_option_font_size_on_hover;
                 label->fit_label_to_text();
                 break;
-            case Hover::leave:
+            case input::MouseHover::leave:
                 label->m_font_size = m_option_font_size;
                 label->fit_label_to_text();
                 break;
@@ -80,10 +85,9 @@ namespace view
         resize(m_context_rect);
     };
 
-    void CycleMenu::on_option_clicked(
-        mouse::Button button, OptionCallback callback)
+    void CycleMenu::on_option_clicked(input::MouseButton button, OptionCallback callback)
     {
-        if (button == mouse::Button::left)
+        if (button == input::MouseButton::left)
         {
             callback();
         }

@@ -2,20 +2,33 @@
  * Created on 28.11.2020 by nefchen.
  */
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_ttf.h>
 #include <stdexcept>
-#include <variant>
 #include <algorithm>
+#include <vector>
 
-#include "views/start_screen.hpp"
-#include "comm.hpp"
-#include "window.hpp"
+#include "types/sdl.hpp"
+#include "types/basic.hpp"
+#include "types/input.hpp"
+#include "comm/comm.hpp"
+#include "views/start_screen/start_screen.hpp"
 
 using DispatcherPtr = std::shared_ptr<comm::Dispatcher>;
+using Lifetimes = std::vector<comm::Lifetime>;
+
+// Useful aggregate to encapsulate window dependencies.
+struct Window
+{
+    sdl::Window m_sdl_window;
+    sdl::Renderer m_sdl_renderer;
+    std::unique_ptr<view::View> m_view;
+    bool m_visible{true};
+};
+using Windows = std::vector<Window>;
+
+constexpr Rect g_initial_win_rect{0, 0, 800, 800};
 
 
-void initialize_sdl_environment()
+void initialize_sdl()
 {
     if (auto res = SDL_Init(SDL_INIT_VIDEO); res != 0)
     {
@@ -27,201 +40,306 @@ void initialize_sdl_environment()
     }
 }
 
-void process_sdl_window_events(
-    win::Window& window, SDL_WindowEvent win_event)
+Windows::iterator find_window(Windows& wins, Id wid)
+{
+    return std::find_if(
+        wins.begin(), wins.end(),
+        [&wid](auto& win) {
+            return wid == SDL_GetWindowID(win.m_sdl_window.get());
+        }
+    );
+}
+
+void create_window(Windows& wins, comm::Node comm_node)
+{
+    sdl::Window raw_sdl_win{
+        SDL_CreateWindow(
+            "Deadly Space Adventures",
+            g_initial_win_rect.x,
+            g_initial_win_rect.y,
+            g_initial_win_rect.w,
+            g_initial_win_rect.h,
+            SDL_WINDOW_SHOWN// | SDL_WINDOW_RESIZABLE | SDL_RENDERER_PRESENTVSYNC
+        )
+    };
+    if (raw_sdl_win == nullptr)
+    {
+        return;
+    }
+
+    sdl::Renderer raw_sdl_renderer{
+        SDL_CreateRenderer(
+            raw_sdl_win.get(),
+            -1,
+            SDL_RENDERER_ACCELERATED
+        )
+    };
+
+    Window win{std::move(raw_sdl_win), std::move(raw_sdl_renderer)};
+
+    // For now default to start screen.
+    win.m_view = std::make_unique<start_screen::View>(comm_node);
+
+    // Guarantee that resize event will be propagated
+    // at least once to this window.
+    win.m_view->propagate_resize({g_initial_win_rect.w, g_initial_win_rect.h});
+
+    wins.push_back(std::move(win));
+}
+
+void destroy_window(Windows& wins, Id wid)
+{
+    wins.erase(
+        std::remove_if(
+            wins.begin(), wins.end(),
+            [&wid](auto& win) {
+                return wid == SDL_GetWindowID(win.m_sdl_window.get());
+            }
+        )
+    );
+}
+
+void on_window_resize(Windows& wins, Id wid, Point new_size)
+{
+    auto win_it{find_window(wins, wid)};
+    if (win_it == wins.end())
+    {
+        return;
+    }
+
+    (*win_it).m_view->propagate_resize(new_size);
+}
+
+void on_window_hidden(Windows& wins, Id wid)
+{
+    auto win_it{find_window(wins, wid)};
+    if (win_it == wins.end())
+    {
+        return;
+    }
+
+    (*win_it).m_visible = false;
+}
+
+void on_window_exposed(Windows& wins, Id wid)
+{
+    auto win_it{find_window(wins, wid)};
+    if (win_it == wins.end())
+    {
+        return;
+    }
+
+    (*win_it).m_visible = true;
+}
+
+void on_mouse_moved(Windows& wins, Id wid, Point pos)
+{
+    auto win_it{find_window(wins, wid)};
+    if (win_it == wins.end())
+    {
+        return;
+    }
+
+    (*win_it).m_view->propagate_mouse_move(pos);
+}
+
+void on_mouse_clicked(
+    Windows& wins, Id wid, Point pos, input::MouseButton button, u8 clicks)
+{
+    auto win_it{find_window(wins, wid)};
+    if (win_it == wins.end())
+    {
+        return;
+    }
+
+    (*win_it).m_view->propagate_mouse_click(pos, button, clicks);
+}
+
+void render_window(Window& window)
+{
+    if (!window.m_visible)
+    {
+        return;
+    }
+
+    SDL_SetRenderDrawColor(window.m_sdl_renderer.get(), 0, 0, 0, 255);
+    SDL_RenderClear(window.m_sdl_renderer.get());
+
+    if (window.m_view != nullptr)
+    {
+        window.m_view->render(window.m_sdl_renderer.get());
+    }
+
+    SDL_RenderPresent(window.m_sdl_renderer.get());
+}
+
+void collect_sdl_window_events(SDL_WindowEvent win_event, comm::Node& comm_node)
 {
     switch (win_event.event)
     {
-        case SDL_WINDOWEVENT_RESIZED:
-            window.m_comm_node->window_resized.emit(
-                {win_event.data1, win_event.data2}
-            );
+        case SDL_WINDOWEVENT_CLOSE:
+            comm_node->destroy_window_request.emit(win_event.windowID);
             break;
-        case SDL_WINDOWEVENT_MOVED:
-            window.m_comm_node->window_moved.emit(
+        case SDL_WINDOWEVENT_RESIZED:
+            comm_node->window_resized.emit(
+                win_event.windowID,
                 {win_event.data1, win_event.data2}
             );
             break;
         case SDL_WINDOWEVENT_HIDDEN:
-            window.m_comm_node->window_hidden.emit();
+            comm_node->window_hidden.emit(win_event.windowID);
             break;
         case SDL_WINDOWEVENT_EXPOSED:
-            window.m_comm_node->window_exposed.emit();
+            comm_node->window_exposed.emit(win_event.windowID);
             break;
     }
 }
 
-void process_sdl_events(
-    SDL_Event* event,
-    comm::Node& comm_node,
-    std::shared_ptr<std::vector<win::Window>>& windows)
+void collect_sdl_events(SDL_Event* event, comm::Node& comm_node)
 {
-    while (SDL_PollEvent(event))
+    switch (event->type)
     {
-        switch (event->type)
-        {
-            case SDL_QUIT:
-                comm_node->app_exit_request.emit();
-                break;
-            case SDL_WINDOWEVENT:
-            {
-                if (event->window.event == SDL_WINDOWEVENT_CLOSE)
-                {
-                    comm_node->destroy_window_request.emit(
-                        event->window.windowID
-                    );
-                    break;
-                }
-
-                // In other cases.
-                for (auto& window : *windows)
-                {
-                    auto id{SDL_GetWindowID(window.m_sdl_window)};
-                    if (id == event->window.windowID)
-                    {
-                        process_sdl_window_events(window, event->window);
-                    }
-                }
-            }
-                break;
-            case SDL_MOUSEMOTION:
-                comm_node->mouse_moved.emit(
-                    {event->motion.x, event->motion.y}
-                );
-                break;
-            case SDL_MOUSEBUTTONUP:
-                if (event->button.clicks == 1)
-                {
-                    comm_node->mouse_button_clicked.emit(
-                        {event->button.x, event->button.y},
-                        static_cast<mouse::Button>(event->button.button)
-                    );
-                }
-                break;
-            default:
-                break;
-        }
+        case SDL_QUIT:
+            comm_node->app_exit_request.emit();
+            break;
+        case SDL_MOUSEMOTION:
+            comm_node->mouse_moved.emit(
+                {event->motion.x, event->motion.y},
+                event->motion.windowID
+            );
+            break;
+        case SDL_MOUSEBUTTONUP:
+            comm_node->mouse_button_clicked.emit(
+                {event->button.x, event->button.y},
+                static_cast<input::MouseButton>(event->button.button),
+                event->button.clicks,
+                event->button.windowID
+            );
+            break;
+        case SDL_WINDOWEVENT:
+            collect_sdl_window_events(event->window, comm_node);
+            break;
+        default:
+            break;
     }
 }
 
-void process_user_app_exit_request(bool& application_should_run)
+void connect_control_signals(
+    comm::Node& comm_node, bool& application_should_run, Lifetimes& lifetimes)
 {
-    application_should_run = false;
-}
-
-std::vector<comm::Disconnector> connect_control_signals(
-    comm::Node& comm_node,
-    bool& application_should_run)
-{
-    std::vector<comm::Disconnector> disconnectors;
-
     // Exit signal.
-    disconnectors.push_back(
+    lifetimes.push_back(
         comm_node->app_exit_request.connect(
             [&application_should_run]() {
-                process_user_app_exit_request(application_should_run);
+                // May turn more complicated later.
+                application_should_run = false;
+            }
+        )
+    );
+}
+
+void connect_window_signals(
+    comm::Node& comm_node, Windows& wins, Lifetimes& lifetimes)
+{
+    // Create.
+    lifetimes.push_back(
+        comm_node->create_window_request.connect(
+            [&wins, &comm_node]() {
+                create_window(wins, comm_node);
             }
         )
     );
 
-    return disconnectors;
-}
-
-win::Window create_window(const comm::Node& comm_node)
-{
-    // Each window has its own window node.
-    win::Window window{comm_node};
-
-    // Select entry view. For now assign a default one.
-    window.load_view<start_screen::View>();
-
-    return window;
-};
-
-std::vector<comm::Disconnector> connect_window_management(
-    comm::Node& comm_node, std::shared_ptr<std::vector<win::Window>>& windows)
-{
-    std::vector<comm::Disconnector> disconnectors;
-
-    auto on_create_request{
-        [windows, comm_node]() {
-            // Window creation might turn lengthy,
-            // keep it as separate function.
-            windows->emplace_back(
-                create_window(comm_node)
-            );
-        }
-    };
-    disconnectors.push_back(
-        comm_node->create_window_request.connect(std::move(on_create_request))
-    );
-
-    auto on_destroy_request{
-        [windows, comm_node](Id wid) {
-            windows->erase(
-                std::remove_if(
-                    windows->begin(),
-                    windows->end(),
-                    [wid](auto& win) {
-                        return wid == SDL_GetWindowID(win.m_sdl_window);
-                    }
-                )
-            );
-        }
-    };
-    disconnectors.push_back(
+    // Destroy.
+    lifetimes.push_back(
         comm_node->destroy_window_request.connect(
-            std::move(on_destroy_request)
+            [&wins](Id wid) {
+                destroy_window(wins, wid);
+            }
         )
     );
 
-    return disconnectors;
+    // Resize.
+    lifetimes.push_back(
+        comm_node->window_resized.connect(
+            [&wins](Id wid, Point new_size) {
+                on_window_resize(wins, wid, new_size);
+            }
+        )
+    );
+
+    // Hidden.
+    lifetimes.push_back(
+        comm_node->window_hidden.connect(
+            [&wins](Id wid) {
+                on_window_hidden(wins, wid);
+            }
+        )
+    );
+
+    // Exposed.
+    lifetimes.push_back(
+        comm_node->window_exposed.connect(
+            [&wins](Id wid) {
+                on_window_exposed(wins, wid);
+            }
+        )
+    );
+
+    // Mouse moved.
+    lifetimes.push_back(
+        comm_node->mouse_moved.connect(
+            [&wins](Point new_pos, Id wid) {
+                on_mouse_moved(wins, wid, new_pos);
+            }
+        )
+    );
+
+    // Mouse clicked.
+    lifetimes.push_back(
+        comm_node->mouse_button_clicked.connect(
+            [&wins](Point pos, input::MouseButton button, u8 clicks, Id wid) {
+                on_mouse_clicked(wins, wid, pos, button, clicks);
+            }
+        )
+    );
 }
 
 int main()
 {
-    initialize_sdl_environment();
+    initialize_sdl();
 
     bool application_should_run{true};
     SDL_Event current_sdl_event;
 
-    auto main_dispatcher{std::make_shared<comm::Dispatcher>()};
-    comm::Node comm_node{std::make_shared<comm::_Node>(main_dispatcher)};
+    auto comm_dispatcher{std::make_shared<comm::Dispatcher>()};
+    auto comm_node{std::make_shared<comm::_Node>(comm_dispatcher)};
+    Lifetimes lifetimes;
 
-    // disconnectors *must not* be discarded.
-    auto control_disconnectors{
-        connect_control_signals(comm_node, application_should_run)
-    };
+    Windows windows;
 
-    auto windows{std::make_shared<std::vector<win::Window>>()};
-    auto win_disconnectors{
-        connect_window_management(comm_node, windows)
-    };
+    // Connect signals, lifetimes *must not* be discarded.
+    connect_control_signals(comm_node, application_should_run, lifetimes);
+    connect_window_signals(comm_node, windows, lifetimes);
 
-    // Create main window.
-    comm_node->create_window_request.emit();
-    main_dispatcher->emit();
-
-    // Guarantee that resize event will be propagated
-    // at least once.
-    comm_node->window_resized.emit(
-        {win::g_initial_window_w, win::g_initial_window_h}
-    );
+    // Create entry point window.
+    create_window(windows, comm_node);
 
     while (application_should_run)
     {
-        process_sdl_events(&current_sdl_event, comm_node, windows);
-
-        main_dispatcher->emit();
-
-        for (auto& window: *windows)
+        while (SDL_PollEvent(&current_sdl_event))
         {
-            window.render();
+            collect_sdl_events(&current_sdl_event, comm_node);
+        }
+
+        // Pump events to the many handlers.
+        comm_dispatcher->emit();
+
+        for (auto& win : windows)
+        {
+            render_window(win);
         }
     }
-
-    comm::disconnect_signals(control_disconnectors);
-    comm::disconnect_signals(win_disconnectors);
 
     return 0;
 }

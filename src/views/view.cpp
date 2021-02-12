@@ -1,34 +1,22 @@
 /*
-*std::max() * Created on 28.01.2021 by nefchen.
+ * Created on 28.01.2021 by nefchen.
  */
 
-#include <SDL2/SDL.h>
 #include <memory>
 #include <algorithm>
 
-#include "widget.hpp"
-#include "view.hpp"
-#include "../types.hpp"
-#include "../utils.hpp"
+#include "widgets/widget.hpp"
+#include "views/view.hpp"
+#include "views/positioning.hpp"
+#include "types/basic.hpp"
+#include "types/sdl.hpp"
 
 
 namespace view
 {
     View::View(comm::Node comm_node): m_comm_node(std::move(comm_node))
     {
-        m_signal_ds.push_back(
-            m_comm_node->mouse_moved.connect(
-                [this](Point p) { this->propagate_mouse_move(p); }
-            )
-        );
-
-        m_signal_ds.push_back(
-            m_comm_node->mouse_button_clicked.connect(
-                [this](Point p, mouse::Button b) {
-                    this->propagate_mouse_click(p, b);
-                }
-            )
-        );
+        m_rect_cache.push_back({0, 0, 0, 0});
     };
 
     void View::insert_widget(std::shared_ptr<Widget> widget, const Widget* parent)
@@ -53,26 +41,19 @@ namespace view
             );
         }
 
-        m_widget_scopes.clear();
-        auto total_scopes{
-            std::max_element(
-                m_layers.begin(),
-                m_layers.end(),
-                [](auto& lhs, auto& rhs) {
-                    return lhs.second < rhs.second;
-                }
-            )->second + 1
-        };
-
-        for (u32 i = 0; i <= total_scopes; ++i)
-        {
-            m_widget_scopes.push_back({0, 0, 0, 0});
-        }
+        // Make space for the new widget.
+        m_rect_cache.push_back({0, 0, 0, 0});
     };
 
-    void View::propagate_mouse_click(Point point, mouse::Button button)
+    void View::propagate_mouse_click(Point point, input::MouseButton button, u8 clicks)
     {
-        m_widget_scopes.at(0) = {0, 0, 0, 0};
+        // TODO: later we may want to handle double clicks.
+        if (clicks != 1)
+        {
+            return;
+        }
+
+        m_rect_cache.at(0) = {0, 0, 0, 0};
 
         for (auto& widget : m_widgets)
         {
@@ -84,10 +65,10 @@ namespace view
             auto real_rect{
                 rect_in_absolute_origin(
                     widget->m_rect,
-                    m_widget_scopes.at(w_layer)
+                    m_rect_cache.at(w_layer)
                 )
             };
-            m_widget_scopes.at(w_layer + 1) = real_rect;
+            m_rect_cache.at(w_layer + 1) = real_rect;
 
             if (point_in_rect(point, real_rect))
             {
@@ -98,7 +79,7 @@ namespace view
 
     void View::propagate_mouse_move(Point point)
     {
-        m_widget_scopes.at(0) = {0, 0, 0, 0};
+        m_rect_cache.at(0) = {0, 0, 0, 0};
 
         for (auto& widget : m_widgets)
         {
@@ -110,44 +91,44 @@ namespace view
             auto real_rect{
                 rect_in_absolute_origin(
                     widget->m_rect,
-                    m_widget_scopes.at(w_layer)
+                    m_rect_cache.at(w_layer)
                 )
             };
-            m_widget_scopes.at(w_layer + 1) = real_rect;
+            m_rect_cache.at(w_layer + 1) = real_rect;
 
             if (point_in_rect(point, real_rect))
             {
                 if (!w_state.m_hovered)
                 {
-                    widget->m_mouse_hover_signal.emit(
+                    widget->m_hovered.emit(
                         relative_point_to_rect(point, widget->m_rect),
-                        Hover::enter
+                        input::MouseHover::enter
                     );
                     w_state.m_hovered = true;
                 }
                 else
                 {
-                    widget->m_mouse_hover_signal.emit(
+                    widget->m_hovered.emit(
                         relative_point_to_rect(point, widget->m_rect),
-                        Hover::keep
+                        input::MouseHover::keep
                     );
                 }
             }
             else if (m_widget_state.at(widget->m_id).m_hovered)
             {
                 // Relative position may yield negative values.
-                widget->m_mouse_hover_signal.emit(
+                widget->m_hovered.emit(
                     relative_point_to_rect(point, widget->m_rect),
-                    Hover::leave
+                    input::MouseHover::leave
                 );
                 m_widget_state.at(widget->m_id).m_hovered = false;
             }
         }
     };
 
-    void View::propagate_resize(Rect rect, std::shared_ptr<Widget> widget)
+    void View::propagate_resize(Point point, std::shared_ptr<Widget> widget)
     {
-        m_widget_scopes.at(0) = {0, 0, rect.w, rect.h};
+        m_rect_cache.at(0) = {0, 0, point.x, point.y};
         u32 next_widget_pos{0};
         u8 starting_widget_layer{0};
 
@@ -165,7 +146,7 @@ namespace view
 
             next_widget_pos = position_of_widget + 1;
             starting_widget_layer = m_layers.at(widget->m_id);
-            m_widget_scopes.at(starting_widget_layer + 1) = widget->m_rect;
+            m_rect_cache.at(starting_widget_layer + 1) = widget->m_rect;
         }
 
         for (u32 i = next_widget_pos; i < m_widgets.size(); ++i)
@@ -175,8 +156,8 @@ namespace view
 
             if (curr_layer > starting_widget_layer || widget == nullptr)
             {
-                curr_widget->resize(m_widget_scopes.at(curr_layer));
-                m_widget_scopes.at(curr_layer + 1) = curr_widget->m_rect;
+                curr_widget->resize(m_rect_cache.at(curr_layer));
+                m_rect_cache.at(curr_layer + 1) = curr_widget->m_rect;
             }
             else
             {
@@ -186,26 +167,29 @@ namespace view
 
         if (widget == nullptr)
         {
+            m_rect.w = point.x;
+            m_rect.h = point.y;
+
             // If the window is resizing we may want to
             // reorganize the view.
-            resize(rect);
+            resize(point);
         }
     };
 
-    void View::render(SDL_Renderer* renderer, Rect scope)
+    void View::render(SDL_Renderer* renderer)
     {
-        m_widget_scopes.at(0) = {0, 0, scope.w, scope.h};
+        m_rect_cache.at(0) = {0, 0, m_rect.w, m_rect.h};
 
         for (auto& widget : m_widgets)
         {
             auto w_layer = m_layers.at(widget->m_id);
-            auto w_scope = m_widget_scopes.at(w_layer);
+            auto w_scope = m_rect_cache.at(w_layer);
 
             SDL_RenderSetViewport(renderer, &w_scope);
 
             widget->draw(renderer);
 
-            m_widget_scopes.at(w_layer + 1) = {
+            m_rect_cache.at(w_layer + 1) = {
                 w_scope.x + widget->m_rect.x,
                 w_scope.y + widget->m_rect.y,
                 widget->m_rect.w,

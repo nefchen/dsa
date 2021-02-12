@@ -2,21 +2,29 @@
  * Created on 22.01.2021 by nefchen.
  */
 
-#ifndef SIGNALS_HPP
-#define SIGNALS_HPP
+#ifndef COMM_SIGNALS_HPP
+#define COMM_SIGNALS_HPP
 
 #include <functional>
 #include <memory>
 #include <vector>
 #include <map>
 
-#include "types.hpp"
+#include "types/basic.hpp"
 
 
 namespace comm
 {
     template <typename... Args>
     using Slot = std::function<void(Args...)>;
+    using Lifetime = std::shared_ptr<Id>;
+
+    template <typename... Args>
+    struct BoundSlot
+    {
+        std::weak_ptr<Id> m_lifetime;
+        Slot<Args...> m_slot;
+    };
 
     struct Dispatcher
     {
@@ -45,23 +53,6 @@ namespace comm
            std::vector<std::function<void(void)>> m_actions;
     };
 
-    struct Disconnector
-    {
-        Disconnector(
-            std::shared_ptr<Id> lifetime, std::function<void(void)>&& disconnect)
-            : m_lifetime{std::move(lifetime)}, m_disconnect{std::move(disconnect)}
-        {};
-
-        Disconnector(Disconnector const& d) = delete;
-        Disconnector(Disconnector&& d) = default;
-        Disconnector& operator=(Disconnector const& d) = delete;
-        Disconnector& operator=(Disconnector&& d) = default;
-        ~Disconnector() = default;
-
-        std::shared_ptr<Id> m_lifetime{nullptr};
-        std::function<void(void)> m_disconnect;
-    };
-
     template <typename... Args>
     struct Signal
     {
@@ -77,18 +68,19 @@ namespace comm
             m_dispatcher = other.m_dispatcher;
         };
 
-        Signal(Signal&& other)
-        {
-            m_dispatcher = other.m_dispatcher;
-            m_slot_id = other.m_slot_id;
-            m_slots = std::move(other.m_slots);
-        };
-
         Signal& operator=(Signal const& other)
         {
             m_dispatcher = other.m_dispatcher;
 
             return *this;
+        };
+
+        Signal(Signal&& other)
+        {
+            m_dispatcher = other.m_dispatcher;
+            m_slot_id = other.m_slot_id;
+
+            m_slots = std::move(other.m_slots);
         };
 
         Signal& operator=(Signal&& other)
@@ -102,36 +94,50 @@ namespace comm
 
         ~Signal() = default;
 
-        Disconnector connect(Slot<Args...>&& slot)
+        inline u32 count_connections() const
         {
-            Disconnector disconnector{
-                std::make_shared<Id>(m_slot_id++),
-                [slot = m_slot_id, this]() {
-                    this->disconnect(slot);
-                }
-            };
+            return m_slots.size();
+        };
+
+        inline Lifetime connect(Slot<Args...>&& slot)
+        {
+            auto lifetime{std::make_shared<Id>(++m_slot_id)};
 
             m_slots.emplace(
                 m_slot_id,
-                std::make_pair(disconnector.m_lifetime, std::move(slot))
+                BoundSlot<Args...>{lifetime, std::move(slot)}
             );
 
-            return disconnector;
+            return lifetime;
         }
 
-        void disconnect(Id slot_id)
+        inline void disconnect(Lifetime&& slot_lifetime)
         {
-            m_slots.erase(slot_id);
+            m_slots.erase(*slot_lifetime);
         }
 
-        void emit(Args... args)
+        inline void emit(Args... args)
         {
-            for (auto& s: m_slots)
+            if (m_emitting)
             {
-                auto action = [lifetime = s.second.first, cback = s.second.second, args...]() {
-                    if (!lifetime.expired())
+                return;
+            };
+
+            m_emitting = true;
+            for (auto iter{m_slots.begin()}; iter != m_slots.end(); )
+            {
+                auto& [id, bound_slot]{*iter};
+
+                if (bound_slot.m_lifetime.expired())
+                {
+                    iter = m_slots.erase(iter);
+                    continue;
+                }
+
+                auto action = [bs = bound_slot, args...]() {
+                    if (!bs.m_lifetime.expired())
                     {
-                        cback(args...);
+                        bs.m_slot(args...);
                     }
                 };
 
@@ -143,23 +149,21 @@ namespace comm
                 {
                     (*m_dispatcher)(std::move(action));
                 }
+
+                ++iter;
             }
+            m_emitting = false;
         };
 
         std::shared_ptr<Dispatcher> m_dispatcher{nullptr};
 
-        Id m_slot_id{0};
-        std::map<Id, std::pair<std::weak_ptr<Id>, Slot<Args...>>> m_slots;
-    };
+        private:
+            bool m_emitting{false};
 
-    inline void disconnect_signals(std::vector<Disconnector>& disconnectors)
-    {
-        for (auto& d: disconnectors)
-        {
-            d.m_disconnect();
-        }
+            Id m_slot_id{0};
+            std::map<Id, BoundSlot<Args...>> m_slots;
     };
 }
 
-#endif  // SIGNALS_HPP
+#endif  // COMM_SIGNALS_HPP
 

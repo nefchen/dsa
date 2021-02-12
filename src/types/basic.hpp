@@ -2,8 +2,8 @@
  * Created on 22.01.2021 by nefchen.
  */
 
-#ifndef TYPES_HPP
-#define TYPES_HPP
+#ifndef TYPES_BASIC_HPP
+#define TYPES_BASIC_HPP
 
 #include <SDL2/SDL.h>
 #include <cstdint>
@@ -39,10 +39,5 @@ enum struct Align
     right, right_top, right_bottom
 };
 
-enum struct Hover
-{
-    enter, keep, leave
-};
-
-#endif  // TYPES_HPP
+#endif  // TYPES_BASIC_HPP
 

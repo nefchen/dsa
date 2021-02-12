@@ -2,10 +2,10 @@
  * Created on 28.01.2021 by nefchen.
  */
 
-#ifndef UTILS_HPP
-#define UTILS_HPP
+#ifndef VIEWS_POSITIONING_HPP
+#define VIEWS_POSITIONING_HPP
 
-#include "types.hpp"
+#include "types/basic.hpp"
 
 
 inline Rect rect_in_absolute_origin(const Rect& rect, const Rect& origin) noexcept
@@ -71,5 +71,5 @@ inline void reposition_rect(
     }
 };
 
-#endif  // UTILS_HPP
+#endif  // VIEWS_POSITIONING_HPP
 

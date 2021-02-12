@@ -5,9 +5,9 @@
 #include <memory>
 #include <iostream>
 
-#include "start_screen.hpp"
-#include "../types.hpp"
-#include "../utils.hpp"
+#include "views/start_screen/start_screen.hpp"
+#include "views/positioning.hpp"
+#include "types/basic.hpp"
 
 
 namespace start_screen
@@ -48,8 +48,9 @@ namespace start_screen
         m_start_menu->set_menu_options(std::move(options_of_menu));
     };
 
-    void View::resize(Rect rect)
+    void View::resize(Point point)
     {
+        Rect rect{0, 0, point.x, point.y};
         reposition_rect(
             m_title->m_rect, rect,
             Align::center_top,
