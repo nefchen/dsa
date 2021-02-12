@@ -43,18 +43,23 @@ namespace view
         u32 opt_index, OptionCallback callback)
     {
         m_signal_lfs.push_back(
-            m_labels.at(opt_index)->m_mouse_hover_signal.connect(
-                [this, opt_index] (Point point, input::MouseHover hover) {
-                    this->on_option_hover(opt_index, point, hover);
-                }
+            comm::bind_autodelete_lifetime(
+                m_labels.at(opt_index)->m_mouse_hover_signal.connect(
+                    [this, opt_index] (Point point, input::MouseHover hover) {
+                        this->on_option_hover(opt_index, point, hover);
+                    }
+                ),
+                m_labels.at(opt_index)->m_mouse_hover_signal
             )
         );
-
         m_signal_lfs.push_back(
-            m_labels.at(opt_index)->m_clicked.connect(
-                [this, callback] (Point point, input::MouseButton button) {
-                    this->on_option_clicked(button, callback);
-                }
+            comm::bind_autodelete_lifetime(
+                m_labels.at(opt_index)->m_clicked.connect(
+                    [this, callback] (Point point, input::MouseButton button) {
+                        this->on_option_clicked(button, callback);
+                    }
+                ),
+                m_labels.at(opt_index)->m_clicked
             )
         );
     };

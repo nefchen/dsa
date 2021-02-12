@@ -37,6 +37,15 @@ namespace comm
     };
 
     using Node = std::shared_ptr<_Node>;
+    using AutodeleteLifetime = std::function<void(void)>;
+
+    template <typename... Args>
+    inline AutodeleteLifetime bind_autodelete_lifetime(Lifetime lf, Signal<Args...>& sig)
+    {
+        return [&sig, lf = std::move(lf)]() mutable {
+            sig.disconnect(std::move(lf));
+        };
+    }
 }
 
 #endif  // COMM_COMM_HPP

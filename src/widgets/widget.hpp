@@ -38,7 +38,7 @@ namespace view
         comm::Signal<Point, input::MouseHover> m_mouse_hover_signal{};
         comm::Signal<Point, input::MouseButton> m_clicked{};
 
-        std::vector<comm::Lifetime> m_signal_lfs;
+        std::vector<comm::AutodeleteLifetime> m_signal_lfs;
     };
 
     struct WidgetState
