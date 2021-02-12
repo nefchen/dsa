@@ -6,7 +6,7 @@
 #include <memory>
 #include <vector>
 
-#include "signals.hpp"
+#include "comm/signals.hpp"
 
 
 TEST_CASE("signal-slot-is-bound-by-lifetime")
@@ -233,5 +233,16 @@ TEST_CASE("signal-moving-with-dispatcher")
     // Now dispatcher holds s3.
     dispatcher->emit();
     REQUIRE(count == 3);
+}
+
+TEST_CASE("signal-disconnect")
+{
+    comm::Signal s1;
+
+    auto lifetime{s1.connect([](){})};
+    REQUIRE(s1.count_connections() == 1);
+
+    s1.disconnect(std::move(lifetime));
+    REQUIRE(s1.count_connections() == 0);
 }
 
