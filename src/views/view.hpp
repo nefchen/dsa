@@ -53,8 +53,10 @@ namespace view
         void propagate_mouse_move(Point point);
         void propagate_mouse_click(Point point, input::MouseButton button, u8 clicks);
         void propagate_resize(Point point, std::shared_ptr<Widget> widget = nullptr);
+
         void insert_widget(std::shared_ptr<Widget> widget, const Widget* parent);
         void remove_widget(std::shared_ptr<Widget> widget, const Widget* parent);
+
         void render(SDL_Renderer* renderer);
 
         comm::Node m_comm_node;
