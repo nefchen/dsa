@@ -21,6 +21,60 @@ namespace view
             : m_view{view}
         {};
 
+        Widget(Widget const& other)
+            : m_rect{other.m_rect},
+              m_context_rect{other.m_context_rect},
+              m_view{other.m_view},
+              m_id{other.m_id},
+              m_hovered{other.m_hovered},
+              m_clicked{other.m_clicked}
+              // No copy of lifetimes.
+        {};
+
+        Widget& operator=(Widget const& other)
+        {
+            m_rect = other.m_rect;
+            m_context_rect = other.m_context_rect;
+            m_view = other.m_view;
+            m_id = other.m_id;
+            m_hovered = other.m_hovered;
+            m_clicked = other.m_clicked;
+            // No compy of lifetimes.
+
+            m_lifetimes.clear();
+
+            return *this;
+        };
+
+        Widget(Widget&& other)
+            : m_rect{other.m_rect},
+              m_context_rect{other.m_context_rect},
+              m_view{other.m_view},
+              m_id{other.m_id},
+              m_hovered{std::move(other.m_hovered)},
+              m_clicked{std::move(other.m_clicked)},
+              m_lifetimes{std::move(other.m_lifetimes)}
+        {
+            other.m_view = nullptr;
+        };
+
+        Widget& operator=(Widget&& other)
+        {
+            m_rect = other.m_rect;
+            m_context_rect = other.m_context_rect;
+            m_view = other.m_view;
+            m_id = other.m_id;
+            m_hovered = std::move(other.m_hovered);
+            m_clicked = std::move(other.m_clicked);
+            m_lifetimes = std::move(other.m_lifetimes);
+
+            other.m_view = nullptr;
+
+            return *this;
+        };
+
+        virtual ~Widget() = default;
+
         virtual void draw(SDL_Renderer* renderer)
         {};
 
@@ -35,10 +89,10 @@ namespace view
         Id m_id{0};
 
         // Widget signals.
-        comm::Signal<Point, input::MouseHover> m_mouse_hover_signal{};
+        comm::Signal<Point, input::MouseHover> m_hovered{};
         comm::Signal<Point, input::MouseButton> m_clicked{};
 
-        std::vector<comm::AutodeleteLifetime> m_signal_lfs;
+        std::vector<comm::AutodeleteLifetime> m_lifetimes;
     };
 
     struct WidgetState

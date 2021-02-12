@@ -100,7 +100,7 @@ namespace view
             {
                 if (!w_state.m_hovered)
                 {
-                    widget->m_mouse_hover_signal.emit(
+                    widget->m_hovered.emit(
                         relative_point_to_rect(point, widget->m_rect),
                         input::MouseHover::enter
                     );
@@ -108,7 +108,7 @@ namespace view
                 }
                 else
                 {
-                    widget->m_mouse_hover_signal.emit(
+                    widget->m_hovered.emit(
                         relative_point_to_rect(point, widget->m_rect),
                         input::MouseHover::keep
                     );
@@ -117,7 +117,7 @@ namespace view
             else if (m_widget_state.at(widget->m_id).m_hovered)
             {
                 // Relative position may yield negative values.
-                widget->m_mouse_hover_signal.emit(
+                widget->m_hovered.emit(
                     relative_point_to_rect(point, widget->m_rect),
                     input::MouseHover::leave
                 );
