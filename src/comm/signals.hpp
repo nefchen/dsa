@@ -101,7 +101,7 @@ namespace comm
 
         inline Lifetime connect(Slot<Args...>&& slot)
         {
-            auto lifetime{std::make_shared<Id>(m_slot_id++)};
+            auto lifetime{std::make_shared<Id>(++m_slot_id)};
 
             m_slots.emplace(
                 m_slot_id,
