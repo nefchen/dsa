@@ -8,6 +8,7 @@ find_package(Catch2 REQUIRED)
 add_executable(dsa_tests
 	signal_tests.cpp
 	comm_tests.cpp
+	widget_tests.cpp
 )
 
 target_include_directories(dsa_tests PRIVATE ../src)
