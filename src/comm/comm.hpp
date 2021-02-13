@@ -17,8 +17,6 @@ namespace comm
     {
         _Node(std::shared_ptr<Dispatcher> dispatcher)
             : app_exit_request{dispatcher},
-              create_window_request{dispatcher},
-              destroy_window_request{dispatcher},
               window_resized{dispatcher},
               window_hidden{dispatcher},
               window_exposed{dispatcher},
@@ -27,13 +25,11 @@ namespace comm
         {};
 
         Signal<> app_exit_request;
-        Signal<> create_window_request;
-        Signal<Id> destroy_window_request;
-        Signal<Id, Point> window_resized;
-        Signal<Id> window_hidden;
-        Signal<Id> window_exposed;
-        Signal<Point, input::MouseButton, u8, Id> mouse_button_clicked;
-        Signal<Point, Id> mouse_moved;
+        Signal<Point> window_resized;
+        Signal<> window_hidden;
+        Signal<> window_exposed;
+        Signal<Point, input::MouseButton, u8> mouse_button_clicked;
+        Signal<Point> mouse_moved;
     };
 
     using Node = std::shared_ptr<_Node>;

@@ -23,7 +23,6 @@ struct Window
     std::unique_ptr<view::View> m_view;
     bool m_visible{true};
 };
-using Windows = std::vector<Window>;
 
 constexpr Rect g_initial_win_rect{0, 0, 800, 800};
 
@@ -40,17 +39,7 @@ void initialize_sdl()
     }
 }
 
-Windows::iterator find_window(Windows& wins, Id wid)
-{
-    return std::find_if(
-        wins.begin(), wins.end(),
-        [&wid](auto& win) {
-            return wid == SDL_GetWindowID(win.m_sdl_window.get());
-        }
-    );
-}
-
-void create_window(Windows& wins, comm::Node comm_node)
+Window create_window(comm::Node comm_node)
 {
     sdl::Window raw_sdl_win{
         SDL_CreateWindow(
@@ -59,12 +48,12 @@ void create_window(Windows& wins, comm::Node comm_node)
             g_initial_win_rect.y,
             g_initial_win_rect.w,
             g_initial_win_rect.h,
-            SDL_WINDOW_SHOWN// | SDL_WINDOW_RESIZABLE | SDL_RENDERER_PRESENTVSYNC
+            SDL_WINDOW_SHOWN  // | SDL_WINDOW_RESIZABLE
         )
     };
     if (raw_sdl_win == nullptr)
     {
-        return;
+        throw std::runtime_error("ERROR: in SDL Window creation");
     }
 
     sdl::Renderer raw_sdl_renderer{
@@ -84,75 +73,7 @@ void create_window(Windows& wins, comm::Node comm_node)
     // at least once to this window.
     win.m_view->propagate_resize({g_initial_win_rect.w, g_initial_win_rect.h});
 
-    wins.push_back(std::move(win));
-}
-
-void destroy_window(Windows& wins, Id wid)
-{
-    wins.erase(
-        std::remove_if(
-            wins.begin(), wins.end(),
-            [&wid](auto& win) {
-                return wid == SDL_GetWindowID(win.m_sdl_window.get());
-            }
-        )
-    );
-}
-
-void on_window_resize(Windows& wins, Id wid, Point new_size)
-{
-    auto win_it{find_window(wins, wid)};
-    if (win_it == wins.end())
-    {
-        return;
-    }
-
-    (*win_it).m_view->propagate_resize(new_size);
-}
-
-void on_window_hidden(Windows& wins, Id wid)
-{
-    auto win_it{find_window(wins, wid)};
-    if (win_it == wins.end())
-    {
-        return;
-    }
-
-    (*win_it).m_visible = false;
-}
-
-void on_window_exposed(Windows& wins, Id wid)
-{
-    auto win_it{find_window(wins, wid)};
-    if (win_it == wins.end())
-    {
-        return;
-    }
-
-    (*win_it).m_visible = true;
-}
-
-void on_mouse_moved(Windows& wins, Id wid, Point pos)
-{
-    auto win_it{find_window(wins, wid)};
-    if (win_it == wins.end())
-    {
-        return;
-    }
-
-    (*win_it).m_view->propagate_mouse_move(pos);
-}
-
-void on_mouse_clicked(
-    Windows& wins, Id wid, Point pos, input::MouseButton button, u8 clicks)
-{
-    auto win_it{find_window(wins, wid)};
-    if (win_it == wins.end())
-    {
-        return;
-    }
-
-    (*win_it).m_view->propagate_mouse_click(pos, button, clicks);
+    return win;
 }
 
 void render_window(Window& window)
@@ -177,20 +98,14 @@ void collect_sdl_window_events(SDL_WindowEvent win_event, comm::Node& comm_node)
 {
     switch (win_event.event)
     {
-        case SDL_WINDOWEVENT_CLOSE:
-            comm_node->destroy_window_request.emit(win_event.windowID);
-            break;
         case SDL_WINDOWEVENT_RESIZED:
-            comm_node->window_resized.emit(
-                win_event.windowID,
-                {win_event.data1, win_event.data2}
-            );
+            comm_node->window_resized.emit({win_event.data1, win_event.data2});
             break;
         case SDL_WINDOWEVENT_HIDDEN:
-            comm_node->window_hidden.emit(win_event.windowID);
+            comm_node->window_hidden.emit();
             break;
         case SDL_WINDOWEVENT_EXPOSED:
-            comm_node->window_exposed.emit(win_event.windowID);
+            comm_node->window_exposed.emit();
             break;
     }
 }
@@ -203,17 +118,13 @@ void collect_sdl_events(SDL_Event* event, comm::Node& comm_node)
             comm_node->app_exit_request.emit();
             break;
         case SDL_MOUSEMOTION:
-            comm_node->mouse_moved.emit(
-                {event->motion.x, event->motion.y},
-                event->motion.windowID
-            );
+            comm_node->mouse_moved.emit({event->motion.x, event->motion.y});
             break;
         case SDL_MOUSEBUTTONUP:
             comm_node->mouse_button_clicked.emit(
                 {event->button.x, event->button.y},
                 static_cast<input::MouseButton>(event->button.button),
-                event->button.clicks,
-                event->button.windowID
+                event->button.clicks
             );
             break;
         case SDL_WINDOWEVENT:
@@ -238,68 +149,41 @@ void connect_control_signals(
     );
 }
 
-void connect_window_signals(
-    comm::Node& comm_node, Windows& wins, Lifetimes& lifetimes)
+void connect_window_signals(comm::Node& comm_node, Window& win, Lifetimes& lifetimes)
 {
-    // Create.
-    lifetimes.push_back(
-        comm_node->create_window_request.connect(
-            [&wins, &comm_node]() {
-                create_window(wins, comm_node);
-            }
-        )
-    );
-
-    // Destroy.
-    lifetimes.push_back(
-        comm_node->destroy_window_request.connect(
-            [&wins](Id wid) {
-                destroy_window(wins, wid);
-            }
-        )
-    );
-
     // Resize.
     lifetimes.push_back(
         comm_node->window_resized.connect(
-            [&wins](Id wid, Point new_size) {
-                on_window_resize(wins, wid, new_size);
-            }
+            [&win](Point new_size) { win.m_view->propagate_resize(new_size); }
         )
     );
 
     // Hidden.
     lifetimes.push_back(
         comm_node->window_hidden.connect(
-            [&wins](Id wid) {
-                on_window_hidden(wins, wid);
-            }
+            [&win]() { win.m_visible = false; }
         )
     );
 
     // Exposed.
     lifetimes.push_back(
         comm_node->window_exposed.connect(
-            [&wins](Id wid) {
-                on_window_exposed(wins, wid);
-            }
+            [&win]() { win.m_visible = true; }
         )
     );
 
     // Mouse moved.
     lifetimes.push_back(
         comm_node->mouse_moved.connect(
-            [&wins](Point new_pos, Id wid) {
-                on_mouse_moved(wins, wid, new_pos);
-            }
+            [&win](Point pos) { win.m_view->propagate_mouse_move(pos); }
         )
     );
 
     // Mouse clicked.
     lifetimes.push_back(
         comm_node->mouse_button_clicked.connect(
-            [&wins](Point pos, input::MouseButton button, u8 clicks, Id wid) {
-                on_mouse_clicked(wins, wid, pos, button, clicks);
+            [&win](Point pos, input::MouseButton button, u8 clicks) {
+                win.m_view->propagate_mouse_click(pos, button, clicks);
             }
         )
     );
@@ -316,14 +200,12 @@ int main()
     auto comm_node{std::make_shared<comm::_Node>(comm_dispatcher)};
     Lifetimes lifetimes;
 
-    Windows windows;
+    // Create entry point window.
+    auto window{create_window(comm_node)};
 
     // Connect signals, lifetimes *must not* be discarded.
     connect_control_signals(comm_node, application_should_run, lifetimes);
-    connect_window_signals(comm_node, windows, lifetimes);
-
-    // Create entry point window.
-    create_window(windows, comm_node);
+    connect_window_signals(comm_node, window, lifetimes);
 
     while (application_should_run)
     {
@@ -335,10 +217,7 @@ int main()
         // Pump events to the many handlers.
         comm_dispatcher->emit();
 
-        for (auto& win : windows)
-        {
-            render_window(win);
-        }
+        render_window(window);
     }
 
     return 0;
