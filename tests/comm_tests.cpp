@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "comm/comm.hpp"
+#include "views/view.hpp"
 #include "types/basic.hpp"
 
 

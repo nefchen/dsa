@@ -6,6 +6,7 @@
 
 #include "widgets/widget.hpp"
 #include "comm/comm.hpp"
+#include "views/view.hpp"
 #include "types/basic.hpp"
 #include "types/input.hpp"
 
