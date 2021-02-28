@@ -1,5 +1,4 @@
 /*
- *
  * Created on 28.11.2020 by nefchen.
  */
 
@@ -203,7 +202,7 @@ void connect_window_signals(comm::Node& comm_node, Window& win, Lifetimes& lifet
                 win.m_view = loader();
 
                 // Guarantee that resize event will be propagated
-                // at least once to this window.
+                // at least once to this view.
                 Point win_size;
                 SDL_GetWindowSize(win.m_sdl_window.get(), &win_size.x, &win_size.y);
                 win.m_view->propagate_resize(win_size);

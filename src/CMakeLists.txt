@@ -8,6 +8,7 @@ add_executable(dsa
 	main.cpp
 	views/view.cpp
 	views/start_screen/start_screen.cpp
+	views/game_screen/game_screen.cpp
 	widgets/label.cpp
 	widgets/cycle_menu.cpp
 )
