@@ -7,6 +7,7 @@
 
 #include <string>
 
+#include "views/view.hpp"
 #include "widgets/widget.hpp"
 #include "text/fonts.hpp"
 #include "types/basic.hpp"

@@ -3,10 +3,11 @@
  */
 
 #include <memory>
-#include <iostream>
 
 #include "views/start_screen/start_screen.hpp"
+#include "views/game_screen/game_screen.hpp"
 #include "views/positioning.hpp"
+#include "views/loader.hpp"
 #include "types/basic.hpp"
 
 
@@ -32,13 +33,18 @@ namespace start_screen
     {
         std::vector<view::MenuOption> options_of_menu{
                 std::make_pair(
-                    "New Game", []() { std::cout << "Entering New Game\n"; }
+                    "New Game",
+                    [comm_node = m_comm_node]() {
+                        comm_node->load_view.emit(
+                            {view::from_type<game_screen::View>{}, comm_node}
+                        );
+                    }
                 ),
                 std::make_pair(
-                    "Continue", []() { std::cout << "Entering Continue\n"; }
+                    "Continue", []() {}
                 ),
                 std::make_pair(
-                    "Options", []() { std::cout << "Entering Options\n"; }
+                    "Options", []() {}
                 )
         };
 

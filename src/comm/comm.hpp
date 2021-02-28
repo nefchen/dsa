@@ -9,6 +9,7 @@
 
 #include "comm/signals.hpp"
 #include "types/input.hpp"
+#include "views/loader.hpp"
 
 
 namespace comm
@@ -30,6 +31,7 @@ namespace comm
         Signal<> window_exposed;
         Signal<Point, input::MouseButton, u8> mouse_button_clicked;
         Signal<Point> mouse_moved;
+        Signal<view::Loader> load_view;
     };
 
     using Node = std::shared_ptr<_Node>;
