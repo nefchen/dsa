@@ -1,4 +1,5 @@
 /*
+ *
  * Created on 28.11.2020 by nefchen.
  */
 
@@ -11,6 +12,7 @@
 #include "types/input.hpp"
 #include "comm/comm.hpp"
 #include "views/start_screen/start_screen.hpp"
+#include "views/loader.hpp"
 
 using DispatcherPtr = std::shared_ptr<comm::Dispatcher>;
 using Lifetimes = std::vector<comm::Lifetime>;
@@ -65,13 +67,6 @@ Window create_window(comm::Node comm_node)
     };
 
     Window win{std::move(raw_sdl_win), std::move(raw_sdl_renderer)};
-
-    // For now default to start screen.
-    win.m_view = std::make_unique<start_screen::View>(comm_node);
-
-    // Guarantee that resize event will be propagated
-    // at least once to this window.
-    win.m_view->propagate_resize({g_initial_win_rect.w, g_initial_win_rect.h});
 
     return win;
 }
@@ -154,7 +149,12 @@ void connect_window_signals(comm::Node& comm_node, Window& win, Lifetimes& lifet
     // Resize.
     lifetimes.push_back(
         comm_node->window_resized.connect(
-            [&win](Point new_size) { win.m_view->propagate_resize(new_size); }
+            [&win](Point new_size) {
+                if (win.m_view != nullptr)
+                {
+                    win.m_view->propagate_resize(new_size);
+                }
+            }
         )
     );
 
@@ -175,7 +175,12 @@ void connect_window_signals(comm::Node& comm_node, Window& win, Lifetimes& lifet
     // Mouse moved.
     lifetimes.push_back(
         comm_node->mouse_moved.connect(
-            [&win](Point pos) { win.m_view->propagate_mouse_move(pos); }
+            [&win](Point pos) {
+                if (win.m_view != nullptr)
+                {
+                    win.m_view->propagate_mouse_move(pos);
+                }
+            }
         )
     );
 
@@ -183,7 +188,25 @@ void connect_window_signals(comm::Node& comm_node, Window& win, Lifetimes& lifet
     lifetimes.push_back(
         comm_node->mouse_button_clicked.connect(
             [&win](Point pos, input::MouseButton button, u8 clicks) {
-                win.m_view->propagate_mouse_click(pos, button, clicks);
+                if (win.m_view != nullptr)
+                {
+                    win.m_view->propagate_mouse_click(pos, button, clicks);
+                }
+            }
+        )
+    );
+
+    // Load view.
+    lifetimes.push_back(
+        comm_node->load_view.connect(
+            [&win](view::Loader loader) {
+                win.m_view = loader();
+
+                // Guarantee that resize event will be propagated
+                // at least once to this window.
+                Point win_size;
+                SDL_GetWindowSize(win.m_sdl_window.get(), &win_size.x, &win_size.y);
+                win.m_view->propagate_resize(win_size);
             }
         )
     );
@@ -206,6 +229,9 @@ int main()
     // Connect signals, lifetimes *must not* be discarded.
     connect_control_signals(comm_node, application_should_run, lifetimes);
     connect_window_signals(comm_node, window, lifetimes);
+
+    // Load initial view.
+    comm_node->load_view.emit({view::from_type<start_screen::View>{}, comm_node});
 
     while (application_should_run)
     {
