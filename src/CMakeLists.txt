@@ -11,6 +11,7 @@ add_executable(dsa
 	views/game_screen/game_screen.cpp
 	widgets/label.cpp
 	widgets/cycle_menu.cpp
+	game/game.cpp
 )
 
 target_include_directories(dsa PRIVATE .)

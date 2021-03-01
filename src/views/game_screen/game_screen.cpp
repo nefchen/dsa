@@ -12,10 +12,14 @@ namespace game_screen
     View::View(comm::Node comm_node): view::View(comm_node)
     {
         m_title = std::make_shared<view::Label>(
-            this, "Game Screen", 25, Color{255, 255, 255}
+            this, "Game Screen", 25, Color{0, 0, 0}
         );
+        m_viewport = std::make_shared<view::Viewport>(this);
 
+        insert_widget(m_viewport, nullptr);
         insert_widget(m_title, nullptr);
+
+        m_comm_node->start_game.emit(m_viewport->m_handle);
     };
 
     void View::resize(Point point)
@@ -25,6 +29,14 @@ namespace game_screen
             m_title->m_rect, rect,
             Align::left_top,
             {10, 0, 0, 10}
+        );
+
+        m_viewport->m_rect = rect;
+        m_viewport->m_handle->m_rect = rect;
+        reposition_rect(
+            m_viewport->m_rect, rect,
+            Align::left_top,
+            {0, 0, 0, 0}
         );
     };
 }
