@@ -45,6 +45,12 @@ namespace start_screen
                 ),
                 std::make_pair(
                     "Options", []() {}
+                ),
+                std::make_pair(
+                    "Exit",
+                    [comm_node = m_comm_node]() {
+                        comm_node->app_exit_request.emit();
+                    }
                 )
         };
 
