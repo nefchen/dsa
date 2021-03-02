@@ -9,6 +9,7 @@
 
 #include "views/view.hpp"
 #include "widgets/label.hpp"
+#include "widgets/viewport.hpp"
 #include "comm/comm.hpp"
 
 
@@ -20,7 +21,9 @@ namespace game_screen
 
         virtual void resize(Point point) override;
 
-        std::shared_ptr<view::Label> m_title;
+        std::shared_ptr<view::Label> m_exit_label;
+        std::shared_ptr<view::Viewport> m_viewport;
+        std::vector<comm::AutodeleteLifetime> m_lifetimes;
     };
 }
 

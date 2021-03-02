@@ -10,6 +10,7 @@
 #include "comm/signals.hpp"
 #include "types/input.hpp"
 #include "views/loader.hpp"
+#include "widgets/viewport_handle.hpp"
 
 
 namespace comm
@@ -32,6 +33,7 @@ namespace comm
         Signal<Point, input::MouseButton, u8> mouse_button_clicked;
         Signal<Point> mouse_moved;
         Signal<view::Loader> load_view;
+        Signal<std::shared_ptr<view::ViewportHandle>> start_game;
     };
 
     using Node = std::shared_ptr<_Node>;

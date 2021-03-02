@@ -12,6 +12,8 @@
 #include "comm/comm.hpp"
 #include "views/start_screen/start_screen.hpp"
 #include "views/loader.hpp"
+#include "game/game.hpp"
+
 
 using DispatcherPtr = std::shared_ptr<comm::Dispatcher>;
 using Lifetimes = std::vector<comm::Lifetime>;
@@ -26,7 +28,6 @@ struct Window
 };
 
 constexpr Rect g_initial_win_rect{0, 0, 800, 800};
-
 
 void initialize_sdl()
 {
@@ -211,6 +212,19 @@ void connect_window_signals(comm::Node& comm_node, Window& win, Lifetimes& lifet
     );
 }
 
+void connect_game_signals(
+    comm::Node& comm_node, std::unique_ptr<game::Game> const& game, Lifetimes& lifetimes)
+{
+    // Game start.
+    lifetimes.push_back(
+        comm_node->start_game.connect(
+            [&game] (std::shared_ptr<view::ViewportHandle> main_render_handle) {
+                game->add_render_output(std::move(main_render_handle));
+            }
+        )
+    );
+}
+
 int main()
 {
     initialize_sdl();
@@ -222,12 +236,16 @@ int main()
     auto comm_node{std::make_shared<comm::_Node>(comm_dispatcher)};
     Lifetimes lifetimes;
 
+    // Create unique game instance.
+    auto game{std::make_unique<game::Game>()};
+
     // Create entry point window.
     auto window{create_window(comm_node)};
 
     // Connect signals, lifetimes *must not* be discarded.
     connect_control_signals(comm_node, application_should_run, lifetimes);
     connect_window_signals(comm_node, window, lifetimes);
+    connect_game_signals(comm_node, game, lifetimes);
 
     // Load initial view.
     comm_node->load_view.emit({view::from_type<start_screen::View>{}, comm_node});
