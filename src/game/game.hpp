@@ -26,7 +26,7 @@ namespace game
                 this->render_handle(handle, renderer);
             };
 
-            m_render_outputs.push_back(handle);
+            m_render_outputs.push_back(std::move(handle));
         };
 
         void render_handle(
@@ -34,7 +34,7 @@ namespace game
             SDL_Renderer* renderer);
 
         private:
-            std::vector<std::weak_ptr<view::ViewportHandle>> m_render_outputs;
+            std::vector<std::shared_ptr<view::ViewportHandle>> m_render_outputs;
     };
 }
 
