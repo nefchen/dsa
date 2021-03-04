@@ -27,7 +27,7 @@ struct Window
     bool m_visible{true};
 };
 
-constexpr Rect g_initial_win_rect{0, 0, 800, 800};
+constexpr Rect g_initial_win_rect{0, 0, 1200, 800};
 
 void initialize_sdl()
 {
