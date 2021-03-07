@@ -27,7 +27,8 @@ namespace game_screen
         insert_widget(m_viewport, nullptr);
         insert_widget(m_exit_label, nullptr);
 
-        m_comm_node->start_game.emit(m_viewport->m_handle);
+        m_comm_node->create_game.emit();
+        m_comm_node->add_viewport_handle_to_game.emit(m_viewport->m_handle);
 
         // Bind exit signal.
         m_lifetimes.push_back(
@@ -42,6 +43,11 @@ namespace game_screen
                 m_exit_label->m_clicked
             )
         );
+    };
+
+    View::~View()
+    {
+        m_comm_node->exit_game.emit();
     };
 
     void View::resize(Point point)

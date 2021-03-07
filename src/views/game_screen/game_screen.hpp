@@ -18,6 +18,7 @@ namespace game_screen
     struct View: view::View
     {
         View(comm::Node comm_node);
+        virtual ~View() override;
 
         virtual void resize(Point point) override;
 
