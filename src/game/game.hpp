@@ -29,6 +29,8 @@ namespace game
             m_render_outputs.push_back(std::move(handle));
         };
 
+        void create_session();
+        void close_session();
         void render_handle(
             std::shared_ptr<view::ViewportHandle> handle,
             SDL_Renderer* renderer);
