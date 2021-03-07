@@ -23,7 +23,10 @@ namespace comm
               window_hidden{dispatcher},
               window_exposed{dispatcher},
               mouse_button_clicked{dispatcher},
-              mouse_moved{dispatcher}
+              mouse_moved{dispatcher},
+              load_view{dispatcher},
+              create_game{dispatcher},
+              exit_game{dispatcher}
         {};
 
         Signal<> app_exit_request;
@@ -33,7 +36,9 @@ namespace comm
         Signal<Point, input::MouseButton, u8> mouse_button_clicked;
         Signal<Point> mouse_moved;
         Signal<view::Loader> load_view;
-        Signal<std::shared_ptr<view::ViewportHandle>> start_game;
+        Signal<> create_game;
+        Signal<> exit_game;
+        Signal<std::shared_ptr<view::ViewportHandle>> add_viewport_handle_to_game;
     };
 
     using Node = std::shared_ptr<_Node>;
