@@ -215,12 +215,26 @@ void connect_window_signals(comm::Node& comm_node, Window& win, Lifetimes& lifet
 void connect_game_signals(
     comm::Node& comm_node, std::unique_ptr<game::Game> const& game, Lifetimes& lifetimes)
 {
-    // Game start.
+    // Game create.
     lifetimes.push_back(
-        comm_node->start_game.connect(
+        comm_node->create_game.connect(
+            [&game] () { game->create_session(); }
+        )
+    );
+
+    // Game add viewport handle.
+    lifetimes.push_back(
+        comm_node->add_viewport_handle_to_game.connect(
             [&game] (std::shared_ptr<view::ViewportHandle> main_render_handle) {
                 game->add_render_output(std::move(main_render_handle));
             }
+        )
+    );
+
+    // Game exit.
+    lifetimes.push_back(
+        comm_node->exit_game.connect(
+            [&game] () { game->close_session(); }
         )
     );
 }
