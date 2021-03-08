@@ -12,8 +12,14 @@ namespace game
     void Game::render_handle(
         std::shared_ptr<view::ViewportHandle> handle, SDL_Renderer* renderer)
     {
-        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+        SDL_SetRenderDrawColor(renderer, 4, 24, 56, 255);
         SDL_RenderFillRect(renderer, &handle->m_rect);
+
+        // Draw ships into main map.
+        for (auto& entity: m_entities)
+        {
+            entity.second->m_draw(renderer);
+        }
     };
 
     void Game::create_session()

@@ -6,10 +6,13 @@
 #define GAME_GAME_HPP
 
 #include <vector>
+#include <map>
 #include <memory>
 
 #include "types/sdl.hpp"
+#include "types/basic.hpp"
 #include "widgets/viewport_handle.hpp"
+#include "game/entities/entity.hpp"
 
 
 namespace game
@@ -31,9 +34,15 @@ namespace game
 
         void create_session();
         void close_session();
+
         void render_handle(
             std::shared_ptr<view::ViewportHandle> handle,
             SDL_Renderer* renderer);
+
+        Id add_entity_to_game(std::unique_ptr<game::Entity>&& entity);
+
+        std::map<Id, std::unique_ptr<game::Entity>> m_entities;
+
 
         private:
             std::vector<std::shared_ptr<view::ViewportHandle>> m_render_outputs;
