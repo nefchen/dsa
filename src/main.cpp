@@ -10,7 +10,7 @@
 #include "types/basic.hpp"
 #include "types/input.hpp"
 #include "comm/comm.hpp"
-#include "views/start_screen/start_screen.hpp"
+#include "views/game_screen/game_screen.hpp"
 #include "views/loader.hpp"
 #include "game/game.hpp"
 
@@ -262,7 +262,7 @@ int main()
     connect_game_signals(comm_node, game, lifetimes);
 
     // Load initial view.
-    comm_node->load_view.emit({view::from_type<start_screen::View>{}, comm_node});
+    comm_node->load_view.emit({view::from_type<game_screen::View>{}, comm_node});
 
     while (application_should_run)
     {

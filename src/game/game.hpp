@@ -13,6 +13,7 @@
 #include "types/basic.hpp"
 #include "widgets/viewport_handle.hpp"
 #include "game/entities/entity.hpp"
+#include "game/entities/proxies.hpp"
 
 
 namespace game
@@ -42,7 +43,7 @@ namespace game
         Id add_entity_to_game(std::unique_ptr<game::Entity>&& entity);
 
         std::map<Id, std::unique_ptr<game::Entity>> m_entities;
-
+        std::map<Id, proxy::Renderable> m_renderables;
 
         private:
             std::vector<std::shared_ptr<view::ViewportHandle>> m_render_outputs;

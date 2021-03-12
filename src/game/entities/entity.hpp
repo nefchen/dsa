@@ -15,6 +15,8 @@
 
 namespace game
 {
+    using DrawFunc = std::function<void(SDL_Renderer*)>;
+
     inline SDL_Surface* default_draw(SDL_Renderer* r)
     {
         return nullptr;
@@ -25,10 +27,13 @@ namespace game
     // entities is fully defined by this aggregate.
     struct Entity
     {
+        Id m_id;
+
         // Rendering attributes.
+        bool m_renderable{true};
         Rect m_rect;
         Point m_pos;
-        std::function<SDL_Surface*(SDL_Renderer*)> m_draw{default_draw};
+        DrawFunc m_draw{default_draw};
 
         // Physical quantities in simulation.
         physics::Acceleration m_simul_acceleration;
