@@ -14,6 +14,8 @@ namespace game::mother_ship
     {
         MotherShip();
         ~MotherShip();
+
+        virtual void draw(SDL_Renderer* renderer) override;
     };
 }
 

@@ -15,16 +15,8 @@
 
 namespace game
 {
-    using DrawFunc = std::function<void(SDL_Renderer*)>;
-
-    inline SDL_Surface* default_draw(SDL_Renderer* r)
-    {
-        return nullptr;
-    };
-
-    // Entity is an aggregate with all shared attributes (attributes
-    // used by other systems) of all entities. The behavior of all
-    // entities is fully defined by this aggregate.
+    // Entity contains all shared attributes (attributes used by
+    // other systems) of every entity type.
     struct Entity
     {
         Id m_id;
@@ -33,7 +25,8 @@ namespace game
         bool m_renderable{true};
         Rect m_rect;
         Point m_pos;
-        DrawFunc m_draw{default_draw};
+        virtual void draw(SDL_Renderer* r)
+        {};
 
         // Physical quantities in simulation.
         physics::Acceleration m_simul_acceleration;

@@ -18,5 +18,10 @@ namespace game::mother_ship
     {
         std::cout << "Mothership destroyed\n";
     };
+
+    void MotherShip::draw(SDL_Renderer* renderer)
+    {
+        //std::cout << "Mothership drawn\n";
+    };
 }
 
