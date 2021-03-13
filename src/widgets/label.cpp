@@ -3,7 +3,6 @@
  */
 
 #include "widgets/label.hpp"
-#include "text/fonts.hpp"
 #include "types/sdl.hpp"
 
 

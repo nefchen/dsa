@@ -8,7 +8,7 @@
 #include "views/loader.hpp"
 #include "types/basic.hpp"
 #include "types/input.hpp"
-#include "text/fonts.hpp"
+#include "assets/fonts.hpp"
 
 
 namespace game_screen

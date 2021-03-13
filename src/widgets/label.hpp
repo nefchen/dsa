@@ -9,7 +9,7 @@
 
 #include "views/view.hpp"
 #include "widgets/widget.hpp"
-#include "text/fonts.hpp"
+#include "assets/fonts.hpp"
 #include "types/basic.hpp"
 #include "types/sdl.hpp"
 
