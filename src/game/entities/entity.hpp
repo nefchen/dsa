@@ -24,7 +24,6 @@ namespace game
         // Rendering attributes.
         bool m_renderable{true};
         Rect m_rect;
-        Point m_pos;
         virtual void draw(SDL_Renderer* r)
         {};
 
