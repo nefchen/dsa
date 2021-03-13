@@ -16,5 +16,5 @@ add_executable(dsa
 )
 
 target_include_directories(dsa PRIVATE .)
-target_link_libraries(dsa SDL2 SDL2_ttf pthread)
+target_link_libraries(dsa SDL2 SDL2_ttf SDL2_image pthread)
 

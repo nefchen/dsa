@@ -2,8 +2,8 @@
  * Created on 24.01.2021 by nefchen.
  */
 
-#ifndef TEXT_FONTS_HPP
-#define TEXT_FONTS_HPP
+#ifndef ASSETS_FONTS_HPP
+#define ASSETS_FONTS_HPP
 
 #include <filesystem>
 #include <stdexcept>
@@ -43,5 +43,5 @@ inline sdl::Font load_font(Fonts font_type, u8 font_size)
 };
 
 
-#endif  // TEXT_FONTS_HPP
+#endif  // ASSETS_FONTS_HPP
 
