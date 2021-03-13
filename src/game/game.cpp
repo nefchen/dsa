@@ -56,10 +56,16 @@ namespace game
 
     void Game::create_session()
     {
-        auto entity{std::make_unique<mother_ship::MotherShip>()};
-        entity->m_id = 1;
-
-        m_entities.push_back(std::move(entity));
+        for (int row = 0; row < 10; ++row)
+        {
+            for (int col = 0; col < 10; ++col)
+            {
+                auto entity{std::make_unique<mother_ship::MotherShip>()};
+                entity->m_rect.x += 120 * col;
+                entity->m_rect.y += 70 * row;
+                m_entities.push_back(std::move(entity));
+            }
+        }
     };
 
     void Game::close_session()
