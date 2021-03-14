@@ -5,6 +5,8 @@
 #include <stdexcept>
 #include <algorithm>
 #include <vector>
+#include <chrono>
+#include <thread>
 
 #include "types/sdl.hpp"
 #include "types/basic.hpp"
@@ -14,9 +16,12 @@
 #include "views/loader.hpp"
 #include "game/game.hpp"
 
-
+using Clock = std::chrono::steady_clock;
 using DispatcherPtr = std::shared_ptr<comm::Dispatcher>;
 using Lifetimes = std::vector<comm::Lifetime>;
+
+constexpr Rect g_initial_win_rect{0, 0, 1200, 800};
+constexpr u32 g_fps{50};
 
 // Useful aggregate to encapsulate window dependencies.
 struct Window
@@ -27,7 +32,11 @@ struct Window
     bool m_visible{true};
 };
 
-constexpr Rect g_initial_win_rect{0, 0, 1200, 800};
+struct Framerate
+{
+    std::chrono::time_point<Clock> m_last_time;
+    std::chrono::microseconds m_time_between_frames{1'000'000 / g_fps};
+};
 
 void initialize_sdl()
 {
@@ -39,6 +48,19 @@ void initialize_sdl()
     {
         throw std::runtime_error("ERROR: in SDL_ttf initialization");
     }
+}
+
+void regulate_framerate(Framerate& fr)
+{
+    auto delta{Clock::now() - fr.m_last_time};
+
+    if (delta < fr.m_time_between_frames)
+    {
+        auto delay_amount{fr.m_time_between_frames - delta};
+        std::this_thread::sleep_for(delay_amount);
+    }
+
+    fr.m_last_time = Clock::now();
 }
 
 Window create_window(comm::Node comm_node)
@@ -249,6 +271,7 @@ int main()
     auto comm_dispatcher{std::make_shared<comm::Dispatcher>()};
     auto comm_node{std::make_shared<comm::_Node>(comm_dispatcher)};
     Lifetimes lifetimes;
+    Framerate framerate;
 
     // Create unique game instance.
     auto game{std::make_unique<game::Game>()};
@@ -264,8 +287,12 @@ int main()
     // Load initial view.
     comm_node->load_view.emit({view::from_type<game_screen::View>{}, comm_node});
 
+    framerate.m_last_time = Clock::now();
+
     while (application_should_run)
     {
+        regulate_framerate(framerate);
+
         while (SDL_PollEvent(&current_sdl_event))
         {
             collect_sdl_events(&current_sdl_event, comm_node);
