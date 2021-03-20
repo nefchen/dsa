@@ -21,6 +21,7 @@ namespace start_screen
         View(comm::Node comm_node);
 
         virtual void resize(Point point) override;
+
         void create_start_menu();
 
         std::shared_ptr<view::Label> m_title;

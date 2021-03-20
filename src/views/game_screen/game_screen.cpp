@@ -32,7 +32,7 @@ namespace game_screen
 
         // Bind exit signal.
         m_lifetimes.push_back(
-            comm::bind_autodelete_lifetime(
+            comm::unsafe::bind_autodelete_lifetime(
                 m_exit_label->m_clicked.connect(
                     [comm_node = m_comm_node](Point p, input::MouseButton button) {
                         comm_node->load_view.emit(

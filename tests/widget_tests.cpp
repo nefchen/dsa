@@ -18,7 +18,7 @@ TEST_CASE("widget-copy-assign")
         view::Widget w2{nullptr};
 
         w2.m_lifetimes.push_back(
-            comm::bind_autodelete_lifetime(
+            comm::unsafe::bind_autodelete_lifetime(
                 w2.m_hovered.connect([](Point p, input::MouseHover h){}),
                 w2.m_hovered
             )
@@ -42,7 +42,7 @@ TEST_CASE("widget-copy-construct")
     view::Widget w2{nullptr};
 
     w2.m_lifetimes.push_back(
-        comm::bind_autodelete_lifetime(
+        comm::unsafe::bind_autodelete_lifetime(
             w2.m_hovered.connect([](Point p, input::MouseHover h){}),
             w2.m_hovered
         )
@@ -70,7 +70,7 @@ TEST_CASE("widget-move-assign")
         view::Widget w2{nullptr};
 
         w2.m_lifetimes.push_back(
-            comm::bind_autodelete_lifetime(
+            comm::unsafe::bind_autodelete_lifetime(
                 w2.m_hovered.connect([](Point p, input::MouseHover h){}),
                 w2.m_hovered
             )
@@ -99,7 +99,7 @@ TEST_CASE("widget-move-construct")
     view::Widget w2{nullptr};
 
     w2.m_lifetimes.push_back(
-        comm::bind_autodelete_lifetime(
+        comm::unsafe::bind_autodelete_lifetime(
             w2.m_hovered.connect([](Point p, input::MouseHover h){}),
             w2.m_hovered
         )

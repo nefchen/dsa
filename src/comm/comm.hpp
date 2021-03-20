@@ -40,16 +40,55 @@ namespace comm
         Signal<> exit_game;
         Signal<std::shared_ptr<view::ViewportHandle>> add_viewport_handle_to_game;
     };
-
     using Node = std::shared_ptr<_Node>;
-    using AutodeleteLifetime = std::function<void(void)>;
 
-    template <typename... Args>
-    inline AutodeleteLifetime bind_autodelete_lifetime(Lifetime lf, Signal<Args...>& sig)
+    // Handy functionality to auto disconnect signals. This is
+    // not part of the main signals.hpp API as it is prone to
+    // seg faults if the signal goes out of scope first.
+    namespace unsafe
     {
-        return [&sig, lf = std::move(lf)]() mutable {
-            sig.disconnect(std::move(lf));
+        using Fn = std::function<void(void)>;
+        struct AutodeleteLifetime
+        {
+            AutodeleteLifetime(Fn&& deleter) : m_deleter(std::move(deleter))
+            {};
+
+            AutodeleteLifetime(AutodeleteLifetime const& rhs) = delete;
+            AutodeleteLifetime& operator=(AutodeleteLifetime const& rhs) = delete;
+
+            AutodeleteLifetime(AutodeleteLifetime&& rhs) = default;
+            AutodeleteLifetime& operator=(AutodeleteLifetime&& rhs) = default;
+
+            ~AutodeleteLifetime()
+            {
+                if (m_deleter != nullptr)
+                {
+                    m_deleter();
+                }
+            }
+
+            void operator()()
+            {
+                if (m_deleter != nullptr)
+                {
+                    m_deleter();
+                }
+                m_deleter = nullptr;
+            };
+
+            private:
+                Fn m_deleter;
         };
+
+        template <typename... Args>
+        inline AutodeleteLifetime bind_autodelete_lifetime(Lifetime&& lf, Signal<Args...>& sig)
+        {
+            return AutodeleteLifetime(
+                [&sig, lf = std::move(lf)]() mutable {
+                    sig.disconnect(std::move(lf));
+                }
+            );
+        }
     }
 }
 

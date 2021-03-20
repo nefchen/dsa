@@ -24,7 +24,7 @@ namespace game_screen
 
         std::shared_ptr<view::Label> m_exit_label;
         std::shared_ptr<view::Viewport> m_viewport;
-        std::vector<comm::AutodeleteLifetime> m_lifetimes;
+        std::vector<comm::unsafe::AutodeleteLifetime> m_lifetimes;
     };
 }
 
