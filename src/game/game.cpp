@@ -4,6 +4,7 @@
 
 #include "game/game.hpp"
 #include "game/entities/mother_ship/mother_ship.hpp"
+#include "game/simulation/positioning.hpp"
 
 
 namespace game
@@ -50,25 +51,29 @@ namespace game
         // Draw renderable entities onto the viewport.
         for (auto& entity: m_entities)
         {
-            entity->draw(renderer);
+            entity.second->draw(renderer);
         }
     };
 
-    void Game::create_session()
+    void Game::create_session(SessionProperties properties)
     {
-        for (int row = 0; row < 10; ++row)
-        {
-            for (int col = 0; col < 10; ++col)
-            {
-                auto entity{std::make_unique<mother_ship::MotherShip>()};
-                entity->m_rect.x += 120 * col;
-                entity->m_rect.y += 70 * row;
-                m_entities.push_back(std::move(entity));
-            }
-        }
+        // Create player resources and place fleet on the map.
+        Rect map_rect{
+            .x = 0,
+            .y = 0,
+            .w = static_cast<int>(properties.m_map_size.m_x),
+            .h = static_cast<int>(properties.m_map_size.m_y)
+        };
+        auto fleet_map_regions{
+            create_sparse_regions_in_rect(map_rect, properties.m_players.size())
+        };
+        for (auto& player : properties.m_players)
+        {}
     };
 
     void Game::close_session()
-    {};
+    {
+        m_entities.clear();
+    };
 }
 

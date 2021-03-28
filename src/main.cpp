@@ -15,6 +15,7 @@
 #include "views/game_screen/game_screen.hpp"
 #include "views/loader.hpp"
 #include "game/game.hpp"
+#include "game/properties.hpp"
 
 using Clock = std::chrono::steady_clock;
 using DispatcherPtr = std::shared_ptr<comm::Dispatcher>;
@@ -56,8 +57,7 @@ void regulate_framerate(Framerate& fr)
 
     if (delta < fr.m_time_between_frames)
     {
-        auto delay_amount{fr.m_time_between_frames - delta};
-        std::this_thread::sleep_for(delay_amount);
+        std::this_thread::sleep_for(fr.m_time_between_frames - delta);
     }
 
     fr.m_last_time = Clock::now();
@@ -240,7 +240,7 @@ void connect_game_signals(
     // Game create.
     lifetimes.push_back(
         comm_node->create_game.connect(
-            [&game] () { game->create_session(); }
+            [&game] (game::SessionProperties p) { game->create_session(p); }
         )
     );
 

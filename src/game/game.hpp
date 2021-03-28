@@ -13,6 +13,7 @@
 #include "types/basic.hpp"
 #include "widgets/viewport_handle.hpp"
 #include "game/entities/entity.hpp"
+#include "game/properties.hpp"
 
 
 namespace game
@@ -27,16 +28,15 @@ namespace game
         // function to draw all game related content.
         void add_render_output(RenderOutput output);
 
-        void create_session();
+        void create_session(SessionProperties properties);
         void close_session();
 
         void render_handle(RenderOutput output, SDL_Renderer* renderer);
-        Id add_entity_to_game(std::unique_ptr<game::Entity>&& entity);
-
-        std::vector<std::unique_ptr<Entity>> m_entities;
+        Id add_entity_to_game(Id player_id, std::unique_ptr<game::Entity>&& entity);
 
         private:
             std::vector<RenderOutput> m_render_outputs;
+            std::vector<std::pair<Id, std::unique_ptr<Entity>>> m_entities;
     };
 }
 

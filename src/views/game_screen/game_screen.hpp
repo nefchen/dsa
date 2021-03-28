@@ -18,9 +18,11 @@ namespace game_screen
     struct View: view::View
     {
         View(comm::Node comm_node);
-        virtual ~View() override;
 
+        virtual ~View() override;
         virtual void resize(Point point) override;
+
+        void start_basic_game_instance();
 
         std::shared_ptr<view::Label> m_exit_label;
         std::shared_ptr<view::Viewport> m_viewport;

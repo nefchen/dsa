@@ -11,6 +11,7 @@
 #include "types/input.hpp"
 #include "views/loader.hpp"
 #include "widgets/viewport_handle.hpp"
+#include "game/properties.hpp"
 
 
 namespace comm
@@ -36,7 +37,7 @@ namespace comm
         Signal<Point, input::MouseButton, u8> mouse_button_clicked;
         Signal<Point> mouse_moved;
         Signal<view::Loader> load_view;
-        Signal<> create_game;
+        Signal<game::SessionProperties> create_game;
         Signal<> exit_game;
         Signal<std::shared_ptr<view::ViewportHandle>> add_viewport_handle_to_game;
     };
