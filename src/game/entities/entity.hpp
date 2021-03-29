@@ -15,11 +15,18 @@
 
 namespace game
 {
+    enum struct TEntity
+    {
+        mothership,
+        explorer_ship
+    };
+
     // Entity contains all shared attributes (attributes used by
     // other systems) of every entity type.
     struct Entity
     {
         Id m_id;
+        TEntity m_type;
 
         // Rendering attributes.
         bool m_renderable{true};

@@ -8,11 +8,13 @@
 #include <vector>
 #include <map>
 #include <memory>
+#include <optional>
 
 #include "types/sdl.hpp"
 #include "types/basic.hpp"
 #include "widgets/viewport_handle.hpp"
 #include "game/entities/entity.hpp"
+#include "game/simulation/simulation.hpp"
 #include "game/properties.hpp"
 
 
@@ -32,11 +34,16 @@ namespace game
         void close_session();
 
         void render_handle(RenderOutput output, SDL_Renderer* renderer);
-        Id add_entity_to_game(Id player_id, std::unique_ptr<game::Entity>&& entity);
+        std::optional<Id> add_player_to_game(PlayerProperties player_props);
+        std::optional<Id> add_entity_to_game(
+            Id player_id, std::unique_ptr<game::Entity>&& entity);
 
         private:
             std::vector<RenderOutput> m_render_outputs;
             std::vector<std::pair<Id, std::unique_ptr<Entity>>> m_entities;
+
+            Simulation m_simulation;
+            u32 m_next_player_id{0};
     };
 }
 

@@ -3,7 +3,7 @@
  */
 
 #include "game/game.hpp"
-#include "game/entities/mother_ship/mother_ship.hpp"
+#include "game/entities/creation.hpp"
 #include "game/simulation/positioning.hpp"
 
 
@@ -57,7 +57,11 @@ namespace game
 
     void Game::create_session(SessionProperties properties)
     {
-        // Create player resources and place fleet on the map.
+        close_session();
+
+        // Define map size and divide in regions to accomodate
+        // initial distribution of player fleets.
+        m_simulation.m_size = properties.m_map_size;
         Rect map_rect{
             .x = 0,
             .y = 0,
@@ -67,13 +71,43 @@ namespace game
         auto fleet_map_regions{
             create_sparse_regions_in_rect(map_rect, properties.m_players.size())
         };
-        for (auto& player : properties.m_players)
-        {}
+
+        // Add each player to the game, create initial fleets and
+        // place them at the centers of the precomputed regions.
+        for (int i = 0; i < properties.m_players.size(); ++i)
+        {
+            auto& player_props{properties.m_players[i]};
+            auto player_id{add_player_to_game(player_props)};
+
+            if (player_id == std::nullopt)
+            {
+                continue;
+            }
+
+            for (auto& entity_t: player_props.m_starting_fleet)
+            {
+                auto entity{create_entity_from_type(entity_t)};
+                add_entity_to_game(player_id.value(), std::move(entity));
+            }
+        }
     };
 
     void Game::close_session()
     {
+        m_simulation.reset_to_initial_state();
         m_entities.clear();
+    };
+
+    std::optional<Id> Game::add_player_to_game(PlayerProperties player_props)
+    {
+        // TODO: do we need to save more player information?
+        return std::make_optional(m_next_player_id++);
+    };
+
+    std::optional<Id> Game::add_entity_to_game(
+        Id player_id, std::unique_ptr<game::Entity>&& entity)
+    {
+        return std::nullopt;
     };
 }
 

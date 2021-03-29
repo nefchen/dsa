@@ -9,6 +9,7 @@
 
 #include "types/physics.hpp"
 #include "types/basic.hpp"
+#include "game/entities/entity.hpp"
 
 
 namespace game
@@ -25,6 +26,12 @@ namespace game
     {
         TPlayer m_type{TPlayer::human};
         u8 m_player_team{0};
+        std::vector<TEntity> m_starting_fleet{
+            TEntity::mothership,
+            TEntity::explorer_ship,
+            TEntity::explorer_ship,
+            TEntity::explorer_ship
+        };
     };
 
     struct SessionProperties
