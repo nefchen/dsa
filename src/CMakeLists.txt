@@ -12,7 +12,8 @@ add_executable(dsa
 	widgets/label.cpp
 	widgets/cycle_menu.cpp
 	game/game.cpp
-	game/entities/mother_ship/mother_ship.cpp
+	game/entities/mothership/mothership.cpp
+	game/simulation/simulation.cpp
 )
 
 target_include_directories(dsa PRIVATE .)
