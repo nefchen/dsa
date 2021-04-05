@@ -7,12 +7,15 @@
 
 #include <memory>
 
+#include "types/basic.hpp"
+#include "types/physics.hpp"
 #include "game/entities/entity.hpp"
 #include "assets/images.hpp"
 
 
 namespace game::mothership
 {
+
     struct Mothership: Entity
     {
         virtual void draw(SDL_Renderer* renderer) override;
@@ -22,7 +25,12 @@ namespace game::mothership
 
     inline std::unique_ptr<Entity> create_entity()
     {
-        return std::make_unique<Mothership>();
+        auto entity{std::make_unique<Mothership>()};
+
+        entity->m_simul_size = {100, 133, 0};
+        entity->m_collision_rects = {Rect{0, 0, 100, 133}};
+
+        return entity;
     }
 }
 
