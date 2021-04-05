@@ -87,7 +87,9 @@ namespace game
             for (auto& entity_t: player_props.m_starting_fleet)
             {
                 auto entity{create_entity_from_type(entity_t)};
-                add_entity_to_game(player_id.value(), std::move(entity));
+                add_entity_to_game(
+                    player_id.value(), std::move(entity), fleet_map_regions.at(i)
+                );
             }
         }
     };
@@ -105,9 +107,25 @@ namespace game
     };
 
     std::optional<Id> Game::add_entity_to_game(
-        Id player_id, std::unique_ptr<game::Entity>&& entity)
+        Id player_id, std::unique_ptr<Entity>&& entity, Rect spawn_area)
     {
-        return std::nullopt;
+        auto entity_id{m_next_entity_id++};
+        entity->m_id = entity_id;
+
+        if (!m_simulation.add_entity_to_simulation(entity, spawn_area))
+        {
+            // Rollback id increment.
+            m_next_player_id--;
+
+            return std::nullopt;
+        }
+
+        entity->m_rect.x = static_cast<int>(entity->m_simul_position.m_x);
+        entity->m_rect.y = static_cast<int>(entity->m_simul_position.m_y);
+
+        m_entities.emplace_back(std::make_pair(entity_id, std::move(entity)));
+
+        return std::make_optional(entity_id);
     };
 }
 
