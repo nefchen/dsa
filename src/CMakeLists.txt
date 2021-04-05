@@ -14,6 +14,7 @@ add_executable(dsa
 	game/game.cpp
 	game/entities/mothership/mothership.cpp
 	game/simulation/simulation.cpp
+	game/simulation/positioning.cpp
 )
 
 target_include_directories(dsa PRIVATE .)
