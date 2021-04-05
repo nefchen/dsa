@@ -14,11 +14,11 @@ namespace game::mothership
             m_current_image.m_texture = load_image(
                 renderer, "ships/mothership_normal.png"
             );
-            m_current_image.m_rect = {50, 50, 50, 67};
+            m_current_image.m_rect = {0, 0, 100, 133};
         }
 
-        m_current_image.m_rect.x = 50 + m_rect.x;
-        m_current_image.m_rect.y = 50 + m_rect.y;
+        m_current_image.m_rect.x = m_rect.x;
+        m_current_image.m_rect.y = m_rect.y;
 
         SDL_RenderCopy(
             renderer,
