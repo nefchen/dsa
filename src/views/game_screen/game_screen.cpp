@@ -80,13 +80,21 @@ namespace game_screen
         game_session.m_players.push_back(
             {
                 .m_type = game::TPlayer::human,
-                .m_player_team = 0
+                .m_player_team = 0,
+                .m_starting_fleet = {
+                    game::TEntity::mothership,
+                    game::TEntity::explorer_ship
+                }
             }
         );
         game_session.m_players.push_back(
             {
                 .m_type = game::TPlayer::machine,
-                .m_player_team = 1
+                .m_player_team = 1,
+                .m_starting_fleet = {
+                    game::TEntity::mothership,
+                    game::TEntity::explorer_ship
+                }
             }
         );
 
