@@ -12,8 +12,11 @@ add_executable(dsa
 	widgets/label.cpp
 	widgets/cycle_menu.cpp
 	game/game.cpp
+	game/entities/mothership/mothership.cpp
+	game/simulation/simulation.cpp
+	game/simulation/positioning.cpp
 )
 
 target_include_directories(dsa PRIVATE .)
-target_link_libraries(dsa SDL2 SDL2_ttf pthread)
+target_link_libraries(dsa SDL2 SDL2_ttf SDL2_image pthread)
 

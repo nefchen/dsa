@@ -19,11 +19,14 @@ namespace game_screen
     {
         View(comm::Node comm_node);
 
+        virtual ~View() override;
         virtual void resize(Point point) override;
+
+        void start_basic_game_instance();
 
         std::shared_ptr<view::Label> m_exit_label;
         std::shared_ptr<view::Viewport> m_viewport;
-        std::vector<comm::AutodeleteLifetime> m_lifetimes;
+        std::vector<comm::unsafe::AutodeleteLifetime> m_lifetimes;
     };
 }
 

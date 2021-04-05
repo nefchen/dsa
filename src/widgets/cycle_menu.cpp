@@ -43,7 +43,7 @@ namespace view
         u32 opt_index, OptionCallback callback)
     {
         m_lifetimes.push_back(
-            comm::bind_autodelete_lifetime(
+            comm::unsafe::bind_autodelete_lifetime(
                 m_labels.at(opt_index)->m_hovered.connect(
                     [this, opt_index] (Point point, input::MouseHover hover) {
                         this->on_option_hover(opt_index, point, hover);
@@ -53,7 +53,7 @@ namespace view
             )
         );
         m_lifetimes.push_back(
-            comm::bind_autodelete_lifetime(
+            comm::unsafe::bind_autodelete_lifetime(
                 m_labels.at(opt_index)->m_clicked.connect(
                     [this, callback] (Point point, input::MouseButton button) {
                         this->on_option_clicked(button, callback);

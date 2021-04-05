@@ -92,7 +92,7 @@ namespace view
         comm::Signal<Point, input::MouseHover> m_hovered{};
         comm::Signal<Point, input::MouseButton> m_clicked{};
 
-        std::vector<comm::AutodeleteLifetime> m_lifetimes;
+        std::vector<comm::unsafe::AutodeleteLifetime> m_lifetimes;
     };
 
     struct WidgetState

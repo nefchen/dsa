@@ -23,6 +23,9 @@ namespace view
     {
         View(comm::Node comm_node);
 
+        virtual ~View()
+        {};
+
         inline const std::vector<std::shared_ptr<Widget>>& widgets() const
         {
             return m_widgets;

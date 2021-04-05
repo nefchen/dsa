@@ -5,18 +5,24 @@
 #include <stdexcept>
 #include <algorithm>
 #include <vector>
+#include <chrono>
+#include <thread>
 
 #include "types/sdl.hpp"
 #include "types/basic.hpp"
 #include "types/input.hpp"
 #include "comm/comm.hpp"
-#include "views/start_screen/start_screen.hpp"
+#include "views/game_screen/game_screen.hpp"
 #include "views/loader.hpp"
 #include "game/game.hpp"
+#include "game/properties.hpp"
 
-
+using Clock = std::chrono::steady_clock;
 using DispatcherPtr = std::shared_ptr<comm::Dispatcher>;
 using Lifetimes = std::vector<comm::Lifetime>;
+
+constexpr Rect g_initial_win_rect{0, 0, 1200, 800};
+constexpr u32 g_fps{50};
 
 // Useful aggregate to encapsulate window dependencies.
 struct Window
@@ -27,7 +33,11 @@ struct Window
     bool m_visible{true};
 };
 
-constexpr Rect g_initial_win_rect{0, 0, 800, 800};
+struct Framerate
+{
+    std::chrono::time_point<Clock> m_last_time;
+    std::chrono::microseconds m_time_between_frames{1'000'000 / g_fps};
+};
 
 void initialize_sdl()
 {
@@ -39,6 +49,18 @@ void initialize_sdl()
     {
         throw std::runtime_error("ERROR: in SDL_ttf initialization");
     }
+}
+
+void regulate_framerate(Framerate& fr)
+{
+    auto delta{Clock::now() - fr.m_last_time};
+
+    if (delta < fr.m_time_between_frames)
+    {
+        std::this_thread::sleep_for(fr.m_time_between_frames - delta);
+    }
+
+    fr.m_last_time = Clock::now();
 }
 
 Window create_window(comm::Node comm_node)
@@ -215,12 +237,26 @@ void connect_window_signals(comm::Node& comm_node, Window& win, Lifetimes& lifet
 void connect_game_signals(
     comm::Node& comm_node, std::unique_ptr<game::Game> const& game, Lifetimes& lifetimes)
 {
-    // Game start.
+    // Game create.
     lifetimes.push_back(
-        comm_node->start_game.connect(
+        comm_node->create_game.connect(
+            [&game] (game::SessionProperties p) { game->create_session(p); }
+        )
+    );
+
+    // Game add viewport handle.
+    lifetimes.push_back(
+        comm_node->add_viewport_handle_to_game.connect(
             [&game] (std::shared_ptr<view::ViewportHandle> main_render_handle) {
                 game->add_render_output(std::move(main_render_handle));
             }
+        )
+    );
+
+    // Game exit.
+    lifetimes.push_back(
+        comm_node->exit_game.connect(
+            [&game] () { game->close_session(); }
         )
     );
 }
@@ -235,6 +271,7 @@ int main()
     auto comm_dispatcher{std::make_shared<comm::Dispatcher>()};
     auto comm_node{std::make_shared<comm::_Node>(comm_dispatcher)};
     Lifetimes lifetimes;
+    Framerate framerate;
 
     // Create unique game instance.
     auto game{std::make_unique<game::Game>()};
@@ -248,10 +285,14 @@ int main()
     connect_game_signals(comm_node, game, lifetimes);
 
     // Load initial view.
-    comm_node->load_view.emit({view::from_type<start_screen::View>{}, comm_node});
+    comm_node->load_view.emit({view::from_type<game_screen::View>{}, comm_node});
+
+    framerate.m_last_time = Clock::now();
 
     while (application_should_run)
     {
+        regulate_framerate(framerate);
+
         while (SDL_PollEvent(&current_sdl_event))
         {
             collect_sdl_events(&current_sdl_event, comm_node);

@@ -6,9 +6,10 @@
 #include "views/start_screen/start_screen.hpp"
 #include "views/positioning.hpp"
 #include "views/loader.hpp"
+#include "game/properties.hpp"
 #include "types/basic.hpp"
 #include "types/input.hpp"
-#include "text/fonts.hpp"
+#include "assets/fonts.hpp"
 
 
 namespace game_screen
@@ -27,11 +28,11 @@ namespace game_screen
         insert_widget(m_viewport, nullptr);
         insert_widget(m_exit_label, nullptr);
 
-        m_comm_node->start_game.emit(m_viewport->m_handle);
+        start_basic_game_instance();
 
         // Bind exit signal.
         m_lifetimes.push_back(
-            comm::bind_autodelete_lifetime(
+            comm::unsafe::bind_autodelete_lifetime(
                 m_exit_label->m_clicked.connect(
                     [comm_node = m_comm_node](Point p, input::MouseButton button) {
                         comm_node->load_view.emit(
@@ -42,6 +43,11 @@ namespace game_screen
                 m_exit_label->m_clicked
             )
         );
+    };
+
+    View::~View()
+    {
+        m_comm_node->exit_game.emit();
     };
 
     void View::resize(Point point)
@@ -60,6 +66,39 @@ namespace game_screen
             Align::left_top,
             {0, 0, 0, 0}
         );
+    };
+
+    void View::start_basic_game_instance()
+    {
+        // To visualize the game we need to give a viewport_handle
+        // to the game instance.
+        m_comm_node->add_viewport_handle_to_game.emit(m_viewport->m_handle);
+
+        // NOTE:
+        // For now create a basic game with default properties with 4 players.
+        game::SessionProperties game_session;
+        game_session.m_players.push_back(
+            {
+                .m_type = game::TPlayer::human,
+                .m_player_team = 0,
+                .m_starting_fleet = {
+                    game::TEntity::mothership,
+                    game::TEntity::explorer_ship
+                }
+            }
+        );
+        game_session.m_players.push_back(
+            {
+                .m_type = game::TPlayer::machine,
+                .m_player_team = 1,
+                .m_starting_fleet = {
+                    game::TEntity::mothership,
+                    game::TEntity::explorer_ship
+                }
+            }
+        );
+
+        m_comm_node->create_game.emit(std::move(game_session));
     };
 }
 

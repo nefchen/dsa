@@ -39,10 +39,10 @@ TEST_CASE("using-autodelete-lifetime")
         REQUIRE(s4.count_connections() == 0);
     }
 
-    auto lf1{comm::bind_autodelete_lifetime(s1.connect([](){}), s1)};
-    auto lf2{comm::bind_autodelete_lifetime(s2.connect([](u8 p){}), s2)};
-    auto lf3{comm::bind_autodelete_lifetime(s3.connect([](double p){}), s3)};
-    auto lf4{comm::bind_autodelete_lifetime(s4.connect([](i16 p){}), s4)};
+    auto lf1{comm::unsafe::bind_autodelete_lifetime(s1.connect([](){}), s1)};
+    auto lf2{comm::unsafe::bind_autodelete_lifetime(s2.connect([](u8 p){}), s2)};
+    auto lf3{comm::unsafe::bind_autodelete_lifetime(s3.connect([](double p){}), s3)};
+    auto lf4{comm::unsafe::bind_autodelete_lifetime(s4.connect([](i16 p){}), s4)};
 
     // Implicit disconnect.
     lf1();

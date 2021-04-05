@@ -9,7 +9,7 @@
 
 #include "views/view.hpp"
 #include "widgets/widget.hpp"
-#include "text/fonts.hpp"
+#include "assets/fonts.hpp"
 #include "types/basic.hpp"
 #include "types/sdl.hpp"
 
@@ -27,7 +27,8 @@ namespace view
               m_text{std::move(text)},
               m_font_size{font_size},
               m_text_color{color},
-              m_font{font}
+              m_font{font},
+              m_loaded_font{load_font(font, font_size)}
         {
             fit_label_to_text();
         };
@@ -39,6 +40,10 @@ namespace view
         Color m_text_color;
         Fonts m_font;
         u8 m_font_size;
+
+        private:
+            sdl::Font m_loaded_font;
+            sdl::Texture m_text_texture{nullptr};
     };
 }
 
