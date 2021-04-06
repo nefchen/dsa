@@ -9,7 +9,9 @@
 namespace game
 {
     void Simulation::reset_to_initial_state()
-    {};
+    {
+        m_entities.clear();
+    };
 
     // Tries placing entity in simulation world anywhere within
     // the designated spawn_area.

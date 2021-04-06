@@ -98,6 +98,10 @@ namespace game
     {
         m_simulation.reset_to_initial_state();
         m_entities.clear();
+        m_render_outputs.clear();
+
+        m_next_player_id = 0;
+        m_next_entity_id = 0;
     };
 
     std::optional<Id> Game::add_player_to_game(PlayerProperties player_props)
