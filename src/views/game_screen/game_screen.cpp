@@ -74,8 +74,7 @@ namespace game_screen
         // to the game instance.
         m_comm_node->add_viewport_handle_to_game.emit(m_viewport->m_handle);
 
-        // NOTE:
-        // For now create a basic game with default properties with 4 players.
+        // NOTE: For now create a basic game with default properties with 2 players.
         game::SessionProperties game_session;
         game_session.m_players.push_back(
             {
