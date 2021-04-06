@@ -33,7 +33,7 @@ namespace game
         void create_session(SessionProperties properties);
         void close_session();
 
-        void render_handle(RenderOutput output, SDL_Renderer* renderer);
+        void render_handle(RenderOutput& output, SDL_Renderer* renderer);
         std::optional<Id> add_player_to_game(PlayerProperties player_props);
         std::optional<Id> add_entity_to_game(
             Id player_id,

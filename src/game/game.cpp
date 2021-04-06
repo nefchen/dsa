@@ -12,14 +12,14 @@ namespace game
     void Game::add_render_output(RenderOutput output)
     {
         // Link handle with Viewport (or the respective source).
-        output->m_render = [output, this](SDL_Renderer* renderer) {
+        output->m_render = [output, this](SDL_Renderer* renderer) mutable {
             this->render_handle(output, renderer);
         };
 
         m_render_outputs.push_back(std::move(output));
     };
 
-    void Game::render_handle(RenderOutput output, SDL_Renderer* renderer)
+    void Game::render_handle(RenderOutput& output, SDL_Renderer* renderer)
     {
         // All entities will be drawn in this texture.
         sdl::Texture texture_for_drawing{
