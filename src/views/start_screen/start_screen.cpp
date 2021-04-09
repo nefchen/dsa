@@ -62,7 +62,7 @@ namespace start_screen
 
     void View::resize(Point point)
     {
-        Rect rect{0, 0, point.x, point.y};
+        Rect rect{0, 0, point.m_x, point.m_y};
         reposition_rect(
             m_title->m_rect, rect,
             Align::center_top,
