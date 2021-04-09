@@ -39,7 +39,14 @@ namespace game
             Id player_id,
             std::unique_ptr<game::Entity>&& entity,
             Rect spawn_area = {0, 0, 500, 500}
-            );
+        );
+
+        // Get entity rect relative to a viewport from its position
+        // in the simulation.
+        void map_entity_into_viewport(
+            std::unique_ptr<Entity>& entity,
+            RenderOutput const& output_vp
+        );
 
         private:
             std::vector<RenderOutput> m_render_outputs;

@@ -15,12 +15,12 @@ inline Rect rect_in_absolute_origin(const Rect& rect, const Rect& origin) noexce
 
 inline bool point_in_rect(const Point& p, const Rect& r) noexcept
 {
-    return p.x > r.x && p.x < r.x + r.w && p.y > r.y && p.y < r.y + r.h;
+    return p.m_x > r.x && p.m_x < r.x + r.w && p.m_y > r.y && p.m_y < r.y + r.h;
 };
 
 inline Point relative_point_to_rect(const Point& p, const Rect& r) noexcept
 {
-    return {p.x - r.x, p.y - r.y};
+    return {p.m_x - r.x, p.m_y - r.y};
 };
 
 inline void reposition_rect(
@@ -36,35 +36,35 @@ inline void reposition_rect(
             break;
         case Align::center_top:
             rect.x = prect.w / 2 - rect.w / 2;
-            rect.y = margin.top;
+            rect.y = margin.m_top;
             break;
         case Align::center_bottom:
             rect.x = prect.w / 2 - rect.w / 2;
-            rect.y = prect.h - rect.h - margin.bottom;
+            rect.y = prect.h - rect.h - margin.m_bottom;
             break;
         case Align::left:
-            rect.x = margin.left;
+            rect.x = margin.m_left;
             rect.y = prect.h / 2 - rect.h / 2;
             break;
         case Align::left_top:
-            rect.x = margin.left;
-            rect.y = margin.top;
+            rect.x = margin.m_left;
+            rect.y = margin.m_top;
             break;
         case Align::left_bottom:
-            rect.x = margin.left;
-            rect.y = prect.h - rect.h - margin.bottom;
+            rect.x = margin.m_left;
+            rect.y = prect.h - rect.h - margin.m_bottom;
             break;
         case Align::right:
-            rect.x = prect.w - rect.w - margin.right;
+            rect.x = prect.w - rect.w - margin.m_right;
             rect.y = prect.h / 2 - rect.h / 2;
             break;
         case Align::right_top:
-            rect.x = prect.w - rect.w - margin.right;
-            rect.y = margin.top;
+            rect.x = prect.w - rect.w - margin.m_right;
+            rect.y = margin.m_top;
             break;
         case Align::right_bottom:
-            rect.x = prect.w - rect.w - margin.right;
-            rect.y = prect.h - rect.h - margin.bottom;
+            rect.x = prect.w - rect.w - margin.m_right;
+            rect.y = prect.h - rect.h - margin.m_bottom;
             break;
         default:
             break;

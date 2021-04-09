@@ -24,7 +24,6 @@ using Lifetimes = std::vector<comm::Lifetime>;
 constexpr Rect g_initial_win_rect{0, 0, 1200, 800};
 constexpr u32 g_fps{50};
 
-// Useful aggregate to encapsulate window dependencies.
 struct Window
 {
     sdl::Window m_sdl_window;
@@ -100,7 +99,7 @@ void render_window(Window& window)
         return;
     }
 
-    SDL_SetRenderDrawColor(window.m_sdl_renderer.get(), 0, 0, 0, 255);
+    SDL_SetRenderDrawColor(window.m_sdl_renderer.get(), 4, 24, 56, 255);
     SDL_RenderClear(window.m_sdl_renderer.get());
 
     if (window.m_view != nullptr)
@@ -227,7 +226,7 @@ void connect_window_signals(comm::Node& comm_node, Window& win, Lifetimes& lifet
                 // Guarantee that resize event will be propagated
                 // at least once to this view.
                 Point win_size;
-                SDL_GetWindowSize(win.m_sdl_window.get(), &win_size.x, &win_size.y);
+                SDL_GetWindowSize(win.m_sdl_window.get(), &win_size.m_x, &win_size.m_y);
                 win.m_view->propagate_resize(win_size);
             }
         )

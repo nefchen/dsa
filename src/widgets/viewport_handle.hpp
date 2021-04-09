@@ -9,6 +9,7 @@
 
 #include "types/sdl.hpp"
 #include "types/basic.hpp"
+#include "types/physics.hpp"
 
 
 namespace view
@@ -20,6 +21,9 @@ namespace view
     {
         std::function<void(SDL_Renderer*)> m_render{default_handle_output};
         Rect m_rect;
+        double m_scale{1.0};
+        Range m_range{0.25, 2.0};
+        physics::Position m_simul_position{0, 0, 0};
     };
 };
 

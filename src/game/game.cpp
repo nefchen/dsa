@@ -49,10 +49,36 @@ namespace game
         SDL_RenderFillRect(renderer, &output->m_rect);
 
         // Draw renderable entities onto the viewport.
+        Rect vp_rect{
+            .x = 0,
+            .y = 0,
+            .w = output->m_rect.w,
+            .h = output->m_rect.h
+        };
         for (auto& entity: m_entities)
         {
-            entity.second->draw(renderer);
+            map_entity_into_viewport(entity.second, output);
+
+            // Draw only if entity appears in viewport.
+            // Assume entity is always smaller than the viewport.
+            if (small_rect_crosses_large_rect(entity.second->m_rect, vp_rect))
+            {
+                entity.second->draw(renderer);
+            }
         }
+    };
+
+    void Game::map_entity_into_viewport(
+        std::unique_ptr<Entity>& entity,
+        RenderOutput const& output_vp)
+    {
+        auto pos_relative_to_vp{entity->m_simul_position - output_vp->m_simul_position};
+        entity->m_rect = {
+            .x = static_cast<int>(pos_relative_to_vp.m_x * output_vp->m_scale),
+            .y = static_cast<int>(pos_relative_to_vp.m_y * output_vp->m_scale),
+            .w = static_cast<int>(entity->m_simul_size.m_x * output_vp->m_scale),
+            .h = static_cast<int>(entity->m_simul_size.m_y * output_vp->m_scale)
+        };
     };
 
     void Game::create_session(SessionProperties properties)
@@ -123,9 +149,6 @@ namespace game
 
             return std::nullopt;
         }
-
-        entity->m_rect.x = static_cast<int>(entity->m_simul_position.m_x);
-        entity->m_rect.y = static_cast<int>(entity->m_simul_position.m_y);
 
         m_entities.emplace_back(std::make_pair(entity_id, std::move(entity)));
 

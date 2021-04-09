@@ -128,7 +128,7 @@ namespace view
 
     void View::propagate_resize(Point point, std::shared_ptr<Widget> widget)
     {
-        m_rect_cache.at(0) = {0, 0, point.x, point.y};
+        m_rect_cache.at(0) = {0, 0, point.m_x, point.m_y};
         u32 next_widget_pos{0};
         u8 starting_widget_layer{0};
 
@@ -167,8 +167,8 @@ namespace view
 
         if (widget == nullptr)
         {
-            m_rect.w = point.x;
-            m_rect.h = point.y;
+            m_rect.w = point.m_x;
+            m_rect.h = point.m_y;
 
             // If the window is resizing we may want to
             // reorganize the view.

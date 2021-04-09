@@ -14,18 +14,23 @@
 
 inline std::filesystem::path g_images_path {"../assets/images"};
 
-inline sdl::Texture load_image(SDL_Renderer* renderer, std::string relative_img_path)
-{
-    auto img_path{g_images_path / relative_img_path};
-    sdl::Texture img_texture{IMG_LoadTexture(renderer, img_path.c_str())};
-
-    return img_texture;
-};
-
 struct Image
 {
     sdl::Texture m_texture;
     Rect m_rect;
+};
+
+inline Image load_image(SDL_Renderer* renderer, std::string relative_img_path)
+{
+    auto img_path{g_images_path / relative_img_path};
+
+    // TODO: handle nullptrs.
+    sdl::Texture img_texture{IMG_LoadTexture(renderer, img_path.c_str())};
+
+    Rect img_size;
+    SDL_QueryTexture(img_texture.get(), nullptr, nullptr, &img_size.w, &img_size.h);
+
+    return {std::move(img_texture), img_size};
 };
 
 #endif  // ASSETS_IMAGES_HPP

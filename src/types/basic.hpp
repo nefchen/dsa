@@ -20,16 +20,22 @@ using Color = SDL_Color;
 
 struct Point
 {
-    i32 x;
-    i32 y;
+    i32 m_x;
+    i32 m_y;
+};
+
+struct Range
+{
+    double m_min;
+    double m_max;
 };
 
 struct Margin
 {
-    i32 top{0};
-    i32 right{0};
-    i32 bottom{0};
-    i32 left{0};
+    i32 m_top{0};
+    i32 m_right{0};
+    i32 m_bottom{0};
+    i32 m_left{0};
 };
 
 enum struct Align
