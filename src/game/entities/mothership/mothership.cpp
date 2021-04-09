@@ -11,19 +11,15 @@ namespace game::mothership
     {
         if (m_current_image.m_texture == nullptr)
         {
-            m_current_image.m_texture = load_image(
-                renderer, "ships/mothership_normal.png"
-            );
-            m_current_image.m_rect = {0, 0, 100, 133};
+            m_current_image = load_image(renderer, "ships/mothership_normal.png");
         }
 
-        m_current_image.m_rect.x = m_rect.x;
-        m_current_image.m_rect.y = m_rect.y;
+        m_current_image.m_rect = m_rect;
 
         SDL_RenderCopy(
             renderer,
             m_current_image.m_texture.get(),
-            NULL,
+            nullptr,
             &m_current_image.m_rect
         );
     };
