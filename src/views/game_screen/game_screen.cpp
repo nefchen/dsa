@@ -52,7 +52,7 @@ namespace game_screen
 
     void View::resize(Point point)
     {
-        Rect rect{0, 0, point.x, point.y};
+        Rect rect{0, 0, point.m_x, point.m_y};
         reposition_rect(
             m_exit_label->m_rect, rect,
             Align::right_top,
@@ -73,9 +73,11 @@ namespace game_screen
         // To visualize the game we need to give a viewport_handle
         // to the game instance.
         m_comm_node->add_viewport_handle_to_game.emit(m_viewport->m_handle);
+        m_viewport->m_handle->m_scale = 1;
 
         // NOTE: For now create a basic game with default properties with 2 players.
         game::SessionProperties game_session;
+        game_session.m_map_size = {1000, 800};
         game_session.m_players.push_back(
             {
                 .m_type = game::TPlayer::human,
@@ -92,6 +94,7 @@ namespace game_screen
                 .m_player_team = 1,
                 .m_starting_fleet = {
                     game::TEntity::mothership,
+                    game::TEntity::explorer_ship,
                     game::TEntity::explorer_ship
                 }
             }
