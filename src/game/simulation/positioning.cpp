@@ -76,10 +76,7 @@ namespace game
                     r_o.y += static_cast<int>(entity.m_position.m_y);
 
                     // Forward check for every vertice of origin rect (r_o).
-                    if (point_in_rect({r_o.x, r_o.y}, r_t) ||
-                        point_in_rect({r_o.x + r_o.w, r_o.y}, r_t) ||
-                        point_in_rect({r_o.x + r_o.w, r_o.y + r_o.h}, r_t) ||
-                        point_in_rect({r_o.x, r_o.y + r_o.h}, r_t))
+                    if (small_rect_crosses_large_rect(r_o, r_t))
                     {
                         colliding_entities.push_back(target_entity);
                         collision_verified = true;
@@ -87,10 +84,7 @@ namespace game
                     }
 
                     // Backward check for every vertice of target rect (r_t).
-                    if (point_in_rect({r_t.x, r_t.y}, r_o) ||
-                        point_in_rect({r_t.x + r_t.w, r_t.y}, r_o) ||
-                        point_in_rect({r_t.x + r_t.w, r_t.y + r_t.h}, r_o) ||
-                        point_in_rect({r_t.x, r_t.y + r_t.h}, r_o))
+                    if (small_rect_crosses_large_rect(r_t, r_o))
                     {
                         colliding_entities.push_back(target_entity);
                         collision_verified = true;
