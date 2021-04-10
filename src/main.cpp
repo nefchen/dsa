@@ -273,7 +273,7 @@ int main()
     Framerate framerate;
 
     // Create unique game instance.
-    auto game{std::make_unique<game::Game>()};
+    auto game{std::make_unique<game::Game>(comm_node)};
 
     // Create entry point window.
     auto window{create_window(comm_node)};

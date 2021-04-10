@@ -118,6 +118,8 @@ namespace game
                 );
             }
         }
+
+        connect_user_interaction_signals();
     };
 
     void Game::close_session()
@@ -125,6 +127,7 @@ namespace game
         m_simulation.reset_to_initial_state();
         m_entities.clear();
         m_render_outputs.clear();
+        m_lifetimes.clear();
 
         m_next_player_id = 0;
         m_next_entity_id = 0;
@@ -154,5 +157,53 @@ namespace game
 
         return std::make_optional(entity_id);
     };
+
+    void Game::connect_user_interaction_signals()
+    {
+        // Keyboard interaction.
+        m_lifetimes.push_back(
+            comm::unsafe::bind_autodelete_lifetime(
+                m_comm_node->keyboard_event.connect(
+                    [this] (input::Key key, input::KeyState state) {
+                        this->resolve_user_keyboard_input(key, state);
+                    }
+                ),
+                m_comm_node->keyboard_event
+            )
+        );
+
+        // In-game mouse click interaction.
+        m_lifetimes.push_back(
+            comm::unsafe::bind_autodelete_lifetime(
+                m_comm_node->in_game_mouse_clicked.connect(
+                    [this] (Point p, input::MouseButton btn, u8 clicks) {
+                        this->resolve_user_mouse_click(p, btn, clicks);
+                    }
+                ),
+                m_comm_node->in_game_mouse_clicked
+            )
+        );
+
+        // In-game mouse move interaction.
+        m_lifetimes.push_back(
+            comm::unsafe::bind_autodelete_lifetime(
+                m_comm_node->in_game_mouse_moved.connect(
+                    [this] (Point p) {
+                        this->resolve_user_mouse_move(p);
+                    }
+                ),
+                m_comm_node->in_game_mouse_moved
+            )
+        );
+    };
+
+    void Game::resolve_user_keyboard_input(input::Key key, input::KeyState state)
+    {};
+
+    void Game::resolve_user_mouse_click(Point point, input::MouseButton button, u8 clicks)
+    {};
+
+    void Game::resolve_user_mouse_move(Point point)
+    {};
 }
 
