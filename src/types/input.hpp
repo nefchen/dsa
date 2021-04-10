@@ -31,6 +31,14 @@ namespace input
     {
         enter, keep, leave
     };
+
+    enum struct Key
+    {};
+
+    enum struct KeyState
+    {
+        pressed, released
+    };
 }
 
 #endif  // TYPES_INPUT_HPP

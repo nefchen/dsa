@@ -77,7 +77,9 @@ namespace physics
     using Acceleration = Vector3D<double>;
     using Velocity = Vector3D<double>;
     using Position = Vector3D<double>;
+    using Distance = Vector3D<double>;
     using Size = Vector3D<double>;
+    using Force = Vector3D<double>;
 }
 
 #endif  // TYPES_PHYSICS_HPP
