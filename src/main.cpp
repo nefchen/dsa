@@ -126,7 +126,10 @@ void collect_sdl_window_events(SDL_WindowEvent win_event, comm::Node& comm_node)
     }
 }
 
-void collect_sdl_events(SDL_Event* event, comm::Node& comm_node)
+void collect_sdl_events(
+    SDL_Event* event,
+    input::KeyboardState& keyboard_state,
+    comm::Node& comm_node)
 {
     switch (event->type)
     {
@@ -145,6 +148,29 @@ void collect_sdl_events(SDL_Event* event, comm::Node& comm_node)
             break;
         case SDL_WINDOWEVENT:
             collect_sdl_window_events(event->window, comm_node);
+            break;
+        case SDL_KEYDOWN:
+            // Fall through.
+        case SDL_KEYUP:
+        {
+            comm_node->keyboard_event.emit(
+                static_cast<input::KeyState>(event->key.state),
+                event->key.repeat,
+                event->key.keysym.sym,
+                event->key.keysym.mod
+            );
+
+            if (event->key.repeat == 0)
+            {
+                keyboard_state.insert_or_assign(
+                    event->key.keysym.sym,
+                    static_cast<input::KeyState>(event->key.state)
+                );
+                comm_node->keyboard_state_updated.emit(
+                    &keyboard_state, event->key.keysym.sym
+                );
+            }
+        }
             break;
         default:
             break;
@@ -266,6 +292,7 @@ int main()
 
     bool application_should_run{true};
     SDL_Event current_sdl_event;
+    input::KeyboardState keyboard_state;
 
     auto comm_dispatcher{std::make_shared<comm::Dispatcher>()};
     auto comm_node{std::make_shared<comm::_Node>(comm_dispatcher)};
@@ -294,7 +321,7 @@ int main()
 
         while (SDL_PollEvent(&current_sdl_event))
         {
-            collect_sdl_events(&current_sdl_event, comm_node);
+            collect_sdl_events(&current_sdl_event, keyboard_state, comm_node);
         }
 
         // Pump events to the many handlers.

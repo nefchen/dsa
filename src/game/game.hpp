@@ -15,6 +15,7 @@
 #include "types/sdl.hpp"
 #include "types/basic.hpp"
 #include "types/physics.hpp"
+#include "types/input.hpp"
 #include "widgets/viewport_handle.hpp"
 #include "game/entities/entity.hpp"
 #include "game/simulation/simulation.hpp"
@@ -24,6 +25,13 @@
 namespace game
 {
     using RenderOutput = std::shared_ptr<view::ViewportHandle>;
+
+    // Make identifier aware of modifier keys. Modifiers:
+    // * shift_key
+    inline constexpr u64 get_game_key_id(SDL_Keycode key, bool shift_key)
+    {
+        return (static_cast<u64>(key) << 32) | (shift_key << 0);
+    };
 
     struct Game
     {
@@ -59,7 +67,8 @@ namespace game
         void connect_user_interaction_signals();
 
         // Update keyboard state map and handle one time keyboard events.
-        void resolve_user_keyboard_input(input::Key key, input::KeyState state);
+        void resolve_user_keyboard_input(
+            const input::KeyboardState* state, SDL_Keycode key);
 
         // Action depending on mouse button and number of clicks.
         void resolve_user_mouse_click(Point point, input::MouseButton, u8 clicks);

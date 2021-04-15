@@ -45,7 +45,8 @@ namespace comm
         Signal<game::SessionProperties> create_game;
         Signal<> exit_game;
         Signal<std::shared_ptr<view::ViewportHandle>> add_viewport_handle_to_game;
-        Signal<input::Key, input::KeyState> keyboard_event;
+        Signal<input::KeyState, u8, SDL_Keycode, u32> keyboard_event;
+        Signal<const input::KeyboardState*, SDL_Keycode> keyboard_state_updated;
     };
     using Node = std::shared_ptr<_Node>;
 

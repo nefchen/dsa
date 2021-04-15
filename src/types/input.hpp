@@ -6,6 +6,7 @@
 #define TYPES_INPUT_HPP
 
 #include <SDL2/SDL.h>
+#include <unordered_map>
 
 #include "types/basic.hpp"
 
@@ -32,13 +33,20 @@ namespace input
         enter, keep, leave
     };
 
-    enum struct Key
-    {};
-
     enum struct KeyState
     {
-        pressed, released
+        pressed = SDL_PRESSED,
+        released = SDL_RELEASED
     };
+
+    using KeyboardState = std::unordered_map<SDL_Keycode, KeyState>;
+
+    inline bool is_shift_pressed(const KeyboardState* const ks)
+    {
+        return
+            ks->contains(SDLK_LSHIFT) && (ks->at(SDLK_LSHIFT) == KeyState::pressed) ||
+            ks->contains(SDLK_RSHIFT) && (ks->at(SDLK_RSHIFT) == KeyState::pressed);
+    }
 }
 
 #endif  // TYPES_INPUT_HPP

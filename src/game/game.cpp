@@ -2,6 +2,9 @@
  * Created on 01.03.2021 by nefchen.
  */
 
+#include <iostream>
+#include <limits>
+
 #include "game/game.hpp"
 #include "game/entities/creation.hpp"
 #include "game/simulation/positioning.hpp"
@@ -163,12 +166,12 @@ namespace game
         // Keyboard interaction.
         m_lifetimes.push_back(
             comm::unsafe::bind_autodelete_lifetime(
-                m_comm_node->keyboard_event.connect(
-                    [this] (input::Key key, input::KeyState state) {
-                        this->resolve_user_keyboard_input(key, state);
+                m_comm_node->keyboard_state_updated.connect(
+                    [this] (const input::KeyboardState* state, SDL_Keycode key) {
+                        this->resolve_user_keyboard_input(state, key);
                     }
                 ),
-                m_comm_node->keyboard_event
+                m_comm_node->keyboard_state_updated
             )
         );
 
@@ -197,8 +200,14 @@ namespace game
         );
     };
 
-    void Game::resolve_user_keyboard_input(input::Key key, input::KeyState state)
-    {};
+    void Game::resolve_user_keyboard_input(
+        const input::KeyboardState* state, SDL_Keycode key)
+    {
+        auto key_id{get_game_key_id(key, input::is_shift_pressed(state))};
+
+        std::cout << key << std::endl;
+        std::cout << key_id << std::endl;
+    };
 
     void Game::resolve_user_mouse_click(Point point, input::MouseButton button, u8 clicks)
     {};
